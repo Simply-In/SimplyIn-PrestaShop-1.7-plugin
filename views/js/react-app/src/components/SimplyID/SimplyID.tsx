@@ -11,6 +11,7 @@ import { predefinedFill } from "./steps/functions.ts";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth.ts";
 import { useCounterData } from "../../hooks/useCounterData.ts";
+import { shortLang } from "./steps/Step1.tsx";
 
 
 export type TypedLoginType = "pinCode" | "app" | undefined
@@ -232,7 +233,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 				middlewareApi({
 					endpoint: "checkout/submitEmail",
 					method: 'POST',
-					requestBody: { "email": simplyInput?.trim().toLowerCase() || "" }
+					requestBody: { "email": simplyInput?.trim().toLowerCase() || "", language: shortLang(i18n.language) }
 				}).then(({ data: phoneNumber, userUsedPushNotifications, notificationTokenId }) => {
 
 
@@ -274,7 +275,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 				middlewareApi({
 					endpoint: "checkout/submitEmail",
 					method: 'POST',
-					requestBody: { "email": simplyInput?.trim().toLowerCase() || "" }
+					requestBody: { "email": simplyInput?.trim().toLowerCase() || "", language: shortLang(i18n.language) }
 				}).then(({ data: phoneNumber, userUsedPushNotifications, notificationTokenId }) => {
 
 					setPhoneNumber(phoneNumber)

@@ -6,7 +6,7 @@ import plJSON from './translations/pl.json'
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-const appLanguage = currentLanguage.locale || "en"
+const appLanguage = currentLanguage.locale || navigator.language || "en"
 
 i18n.use(initReactI18next).init({
 	resources: {

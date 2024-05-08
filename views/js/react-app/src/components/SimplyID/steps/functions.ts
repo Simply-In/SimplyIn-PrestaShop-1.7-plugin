@@ -164,6 +164,15 @@ export const predefinedFill = (userData: any, handleClosePopup: any, indexContex
 	}
 
 
+	setSelectedBillingIndex(0)
+	setSelectedShippingIndex(null)
+	setSameDeliveryAddress(true)
+	setSelectedDeliveryPointIndex(null)
+	sessionStorage.setItem("BillingIndex", `0`)
+	sessionStorage.setItem("ShippingIndex", `null`)
+	sessionStorage.setItem("ParcelIndex", `null`)
+	selectDeliveryMethod({ provider: "default" })
+
 
 }
 

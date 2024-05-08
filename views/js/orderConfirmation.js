@@ -135,7 +135,7 @@ $(document).ready(async function () {
         surname: (delivery_address.lastname || "").trim(),
         phoneNumber: (phoneNumber || "").trim(),
         email: (customer.email || "").trim().toLowerCase(),
-        language: shortLang(getLangBrowser()) ?? language_code.toUpperCase(),
+        language: shortLang(language_code) ?? shortLang(getLangBrowser()),
         marketingConsent: false,
       },
       newOrderData: {
