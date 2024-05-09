@@ -8,12 +8,11 @@ export const useSelectedSimplyData = () => {
 
 
 
-	const [selectedBillingIndex, setSelectedBillingIndex] = useState(0);
-	const [selectedShippingIndex, setSelectedShippingIndex] = useState<number | null>(null);
-	const [selectedDeliveryPointIndex, setSelectedDeliveryPointIndex] = useState<number | null>(null)
-	const [sameDeliveryAddress, setSameDeliveryAddress] = useState<boolean>(loadDataFromSessionStorage({ key: "ShippingIndex" }) ? true : false);
+	const [selectedBillingIndex, setSelectedBillingIndex] = useState(loadDataFromSessionStorage({ key: "BillingIndex" }) ?? 0);
+	const [selectedShippingIndex, setSelectedShippingIndex] = useState<number | null>(loadDataFromSessionStorage({ key: "ShippingIndex" }) ?? null);
+	const [selectedDeliveryPointIndex, setSelectedDeliveryPointIndex] = useState<number | null>(loadDataFromSessionStorage({ key: 'ParcelIndex' }) ?? null)
+	const [sameDeliveryAddress, setSameDeliveryAddress] = useState<boolean>((loadDataFromSessionStorage({ key: "sameDeliveryAddress" })) ? true : false);
 	const [pickupPointDelivery, setPickupPointDelivery] = useState<boolean>(false);
-
 
 	return {
 		selectedBillingIndex,

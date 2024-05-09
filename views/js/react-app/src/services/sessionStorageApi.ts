@@ -20,7 +20,8 @@ type ISessionStorageData = {
 	"isSimplyDataSelected" |
 	"selectedShippingMethod" |
 	"isDeliverySelected" |
-	"isBillingSelected" 
+	"isBillingSelected" |
+	"sameDeliveryAddress"
 	data: any
 } | {
 	key: "createSimplyAccount"

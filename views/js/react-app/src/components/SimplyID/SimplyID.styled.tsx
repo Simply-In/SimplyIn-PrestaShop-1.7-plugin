@@ -194,6 +194,7 @@ font-family: Inter, sans-serif;
 align-items: flex-start;
 `
 export const DataValueTitle = styled.div`
+text-align:left;
 font-size: 16px;
 font-weight: 700;
 `

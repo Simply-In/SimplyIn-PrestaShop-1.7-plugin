@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		//@ts-ignore
-		console.log('isUserLoggedIn', customer);
+		// console.log('isUserLoggedIn', customer);
 		if (!isUserLoggedIn) {
 			const formContainer = document.getElementById("field-email")?.parentNode;
 			const reactAppContainer = document.createElement("div");

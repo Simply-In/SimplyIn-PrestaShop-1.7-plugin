@@ -57,7 +57,6 @@ export const handlePhpScript = (
 		simplyInput
 	}: any) => {
 
-	console.log("handlePHPSCRIPT INSIDE", data);
 
 	const shippingData = (selectedShippingIndex !== null && userData?.shippingAddresses?.length) ? userData?.shippingAddresses[selectedShippingIndex || 0] : null
 
@@ -145,7 +144,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 		shipping: false,
 		deliveryPoint: true
 	});
-
+	type DeliveryType = "address" | "machine"
+	const [deliveryType, setDeliveryType] = useState<DeliveryType>("address");
 	const {
 		selectedBillingIndex,
 		setSelectedBillingIndex,
@@ -161,19 +161,33 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 	} = useContext(SelectedDataContext)
 
 
-	console.log({ selectedBillingIndex, selectedShippingIndex, sameDeliveryAddress });
 
 	useEffect(() => {
-		if (loadDataFromSessionStorage({ key: "ShippingIndex" })) {
+
+		if (!isNaN(loadDataFromSessionStorage({ key: "ShippingIndex" }))) {
 			setSelectedShippingIndex(loadDataFromSessionStorage({ key: "ShippingIndex" }))
 		}
-		if (loadDataFromSessionStorage({ key: "BillingIndex" })) {
+		if (!isNaN(loadDataFromSessionStorage({ key: "BillingIndex" }))) {
 			setSelectedBillingIndex(loadDataFromSessionStorage({ key: "BillingIndex" }))
 			setSameDeliveryAddress(false)
 		}
-		if (loadDataFromSessionStorage({ key: 'ParcelIndex' })) {
+		if (!isNaN(loadDataFromSessionStorage({ key: 'ParcelIndex' }))) {
 			setSelectedDeliveryPointIndex(loadDataFromSessionStorage({ key: 'ParcelIndex' }))
 		}
+		if (loadDataFromSessionStorage({ key: 'sameDeliveryAddress' })) {
+			setSameDeliveryAddress(loadDataFromSessionStorage({ key: 'sameDeliveryAddress' }))
+		}
+
+		if (loadDataFromSessionStorage({ key: 'ShippingIndex' }) === null && !isNaN(loadDataFromSessionStorage({ key: 'ParcelIndex' })) && loadDataFromSessionStorage({ key: 'ParcelIndex' }) !== null && !loadDataFromSessionStorage({ key: 'sameDeliveryAddress' })) {
+			setDeliveryType("machine")
+		}
+		if (loadDataFromSessionStorage({ key: 'ShippingIndex' }) === null && loadDataFromSessionStorage({ key: 'ParcelIndex' }) === null) {
+			setSameDeliveryAddress(true)
+		}
+
+
+
+
 	}, [])
 
 
@@ -184,8 +198,7 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 			return ({ ...prev, [property]: value || !prev[property] })
 		});
 	};
-	type DeliveryType = "address" | "machine"
-	const [deliveryType, setDeliveryType] = useState<DeliveryType>("address");
+
 
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>, type: "billing" | "shipping" | "parcelLockers") => {
 		if (type === "billing") {
@@ -244,6 +257,7 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 		}
 
 		saveDataSessionStorage({ key: 'isParcelAdded', data: false })
+		saveDataSessionStorage({ key: 'sameDeliveryAddress', data: sameDeliveryAddress })
 		removeDataSessionStorage({ key: 'delivery-address' })
 		removeDataSessionStorage({ key: 'invoice-address' })
 		removeDataSessionStorage({ key: 'inpost-delivery-point' })
@@ -308,8 +322,10 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 			if (event.target.checked) {
 				setSelectedShippingIndex(null)
 				handleExpandClick("shipping", false)
+				saveDataSessionStorage({ key: "sameDeliveryAddress", data: true })
 			} else {
 				setSelectedShippingIndex(0)
+				saveDataSessionStorage({ key: "sameDeliveryAddress", data: false })
 			}
 			return (event.target.checked)
 		});
@@ -328,16 +344,11 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 				setPickupPointDelivery(true)
 			}
 		}
-	};
+		if ((event.target as HTMLInputElement).value === "address") {
 
-	useEffect(() => {
-
-		if (selectedDeliveryPointIndex !== null && selectedShippingIndex == null) {
-			return setDeliveryType("machine")
+			setSameDeliveryAddress(true)
 		}
-		setDeliveryType("address")
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	};
 
 
 	return (
