@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Checkbox, Divider } from "@mui/material";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { CheckboxContainer, CheckboxLabel, PhoneInputDescription, PhoneInputDescriptionLink, PhoneInputDescriptionSecondary } from "./PhoneField.styled";
@@ -202,7 +203,9 @@ export const PhoneField = () => {
 							international
 							countryCallingCodeEditable={false}
 							defaultCountry={countryCode || "PL"}
+							//@ts-ignore
 							value={phoneInput}
+							//@ts-ignore
 							onChange={phoneChange}
 							inputComponent={MyCustomInput} /> 
 
