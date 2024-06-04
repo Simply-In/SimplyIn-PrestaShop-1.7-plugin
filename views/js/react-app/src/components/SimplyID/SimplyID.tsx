@@ -1,4 +1,5 @@
 import { useState, useEffect, ChangeEvent, createContext, useRef, useMemo } from "react";
+import { z } from 'zod'
 import { SimplyinSmsPopupOpenerIcon } from "../../assets/SimplyinSmsPopupOpenerIcon.tsx";
 import { SimplyIn, SimplyinContainer, } from "./SimplyID.styled";
 import { middlewareApi } from '../../services/middlewareApi.ts'
@@ -26,7 +27,7 @@ const customerEmail = customer?.email
 export const ApiContext = createContext<any>(null);
 export const SelectedDataContext = createContext<any>(null);
 export const CounterContext = createContext<any>({});
-
+export const isValidEmail = (email: string) => z.string().email().safeParse(email).success
 
 export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 	const [modalStep, setModalStep] = useState(1)
@@ -230,6 +231,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 		if (!authToken && isSimplyIdVisible) {
 
 			const debouncedRequest = debounce(() => {
+				if (isValidEmail(simplyInput.trim().toLowerCase())) {
 				middlewareApi({
 					endpoint: "checkout/submitEmail",
 					method: 'POST',
@@ -247,6 +249,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 				}).catch((err) => {
 					console.log(err);
 				})
+				}
 			}, 500);
 
 			debouncedRequest();
@@ -271,7 +274,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 		if (!isSimplyModalSelected && !authToken && !isSimplyIdVisible) {
 
 			const debouncedRequest = debounce(() => {
-
+				if (isValidEmail(simplyInput.trim().toLowerCase())) {
 				middlewareApi({
 					endpoint: "checkout/submitEmail",
 					method: 'POST',
@@ -289,6 +292,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 				}).catch((err) => {
 					console.log(err);
 				})
+				}
 			}, 500);
 
 			debouncedRequest();

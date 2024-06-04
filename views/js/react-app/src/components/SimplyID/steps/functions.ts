@@ -1,5 +1,5 @@
 import { selectDeliveryMethod } from "../../../functions/selectDeliveryMethod"
-import placeholder from '../../../assets/placeholder.png';
+import placeholder from '../../../../../../img/placeholder.png';
 import { loadDataFromSessionStorage, saveDataSessionStorage } from "../../../services/sessionStorageApi";
 import { handlePhpScript } from "./Step2";
 

@@ -7,8 +7,6 @@ import { FormControlLabel, Radio } from '@mui/material';
 
 import { DataValueContainer, DataValueTitle, DataValueLabel, NoDataLabel } from '../../SimplyID.styled';
 
-import NoData from '../../../../assets/NoData.svg';
-
 import { useTranslation } from 'react-i18next';
 import { ApiContext } from '../../SimplyID';
 import { getPlaceholder } from '../functions';
@@ -194,7 +192,7 @@ export const AddressSearch = ({
 								}}>
 								{/* // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 								//@ts-ignore */}
-								<img src={`${files_url}/views/js/react-app/dist/${NoData}`} alt="Brak danych" style={{
+								<img src={`${files_url}/views/img/NoData.svg`} alt="Brak danych" style={{
 									width: '90%',
 									height: 'auto'
 								}} />
