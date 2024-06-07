@@ -223,8 +223,20 @@ export const Step2Form = ({
 				if (res.error) {
 					throw new Error(res.error)
 				} else if (res.data) {
-					setUserData(res.data)
-					saveDataSessionStorage({ key: 'UserData', data: res.data })
+
+					const newData = { ...res.data }
+					if (newData?.createdAt) {
+						delete newData.createdAt
+					}
+					if (newData?.updatedAt) {
+						delete newData.updatedAt
+					}
+
+					setUserData(newData)
+					saveDataSessionStorage({ key: 'UserData', data: newData })
+
+					// setUserData(res.data)
+					// saveDataSessionStorage({ key: 'UserData', data: res.data })
 
 					//created to select newly created item
 					if (isNewData) {

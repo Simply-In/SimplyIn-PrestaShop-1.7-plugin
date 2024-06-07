@@ -124,15 +124,26 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 
 				setModalStep(2)
 
-				setUserData({ ...res.data })
+				const newData = { ...res.data }
+				if (newData?.createdAt) {
+					delete newData.createdAt
+				}
+				if (newData?.updatedAt) {
+					delete newData.updatedAt
+				}
 
-				saveDataSessionStorage({ key: 'UserData', data: res.data })
+				setUserData(newData)
+				saveDataSessionStorage({ key: 'UserData', data: newData })
+
+
+				// setUserData({ ...res.data })
+				// saveDataSessionStorage({ key: 'UserData', data: res.data })
 
 				sessionStorage.setItem("simplyinToken", res.authToken);
 
 				setToken(res?.authToken)
 
-				predefinedFill(res?.data, handleClosePopup, {
+				predefinedFill(newData, handleClosePopup, {
 					setSelectedBillingIndex,
 					setSelectedShippingIndex,
 					setSelectedDeliveryPointIndex,

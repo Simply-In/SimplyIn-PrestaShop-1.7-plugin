@@ -189,13 +189,27 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 						i18n.changeLanguage(userData?.language.toLowerCase())
 					}
 
-					setUserData(userData)
+
+
+					const newData = { ...userData }
+					if (newData?.createdAt) {
+						delete newData.createdAt
+					}
+					if (newData?.updatedAt) {
+						delete newData.updatedAt
+					}
+
+					setUserData(newData)
+
+
+					// setUserData(userData)
 					setVisible(true)
 					setModalStep(2)
 
-					saveDataSessionStorage({ key: 'UserData', data: userData })
+					saveDataSessionStorage({ key: 'UserData', data: newData })
+					// saveDataSessionStorage({ key: 'UserData', data: userData })
 
-					predefinedFill(userData, handleClosePopup, {
+					predefinedFill(newData, handleClosePopup, {
 						setSelectedBillingIndex,
 						setSelectedShippingIndex,
 						setSelectedDeliveryPointIndex,

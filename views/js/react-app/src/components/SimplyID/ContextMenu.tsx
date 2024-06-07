@@ -106,8 +106,16 @@ export const ContextMenu = ({ userData, item, setEditItemIndex, property, setUse
 			if (res.error) {
 				throw new Error(res.error)
 			} else if (res.data) {
-				setUserData(res.data)
-				saveDataSessionStorage({ key: 'UserData', data: res.data })
+				const newData = { ...res.data }
+				if (newData?.createdAt) {
+					delete newData.createdAt
+				}
+				if (newData?.updatedAt) {
+					delete newData.updatedAt
+				}
+
+				setUserData(newData)
+				saveDataSessionStorage({ key: 'UserData', data: newData })
 				//selection of previously selected radio element
 				if (res.data[property].length) {
 					const filteredPropertyArray = res.data[property].filter((el: any, id: number) => {
