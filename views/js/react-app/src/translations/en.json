@@ -57,6 +57,9 @@
 			"delivery": "Delivery",
 			"point": "Point"
 		},
+		"modal-step-rejected": {
+			"loginRejected": "Login rejected"
+		},
 		"modal-form": {
 			"addressNamePlaceholder": "Address name",
 			"name": "Name",

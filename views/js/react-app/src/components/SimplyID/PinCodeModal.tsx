@@ -8,6 +8,7 @@ import { CloseIcon } from '../../assets/CloseIcon';
 import { SimplyinSmsPopupOpenerIcon } from '../../assets/SimplyinSmsPopupOpenerIcon';
 import { saveDataSessionStorage } from '../../services/sessionStorageApi';
 import { TypedLoginType } from './SimplyID';
+import { StepRejected } from './steps/StepRejected';
 
 
 interface IPinCodePopup {
@@ -105,6 +106,9 @@ export const PinCodeModal = ({ phoneNumber, visible, setVisible, setToken, simpl
 							editItemIndex={editItemIndex}
 							setEditItemIndex={setEditItemIndex}
 
+						/>}
+					{modalStep === "rejected" &&
+						<StepRejected							
 						/>}
 				</PopupContainer>
 			</StyledBox>

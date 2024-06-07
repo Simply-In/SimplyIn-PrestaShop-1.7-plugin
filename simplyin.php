@@ -1,27 +1,25 @@
 <?php
 /**
- * 2007-2023 PrestaShop
+ * Copyright 2024-2027 Simply.IN Sp. z o.o.
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
+ * Licensed under the EUPL-1.2 or later.
+ * You may not use this work except in compliance with the Licence.
  *
- * DISCLAIMER
+ * Copy of the Licence is available at:
+ * https://joinup.ec.europa.eu/software/page/eupl
+ * It is bundled with this package in the file LICENSE.txt
  *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the Licence is distributed on an as is basis,
+ * without warranties or conditions of any kind, either express or implied.
+ * Check the Licence for the specific language governing permissions
+ * and limitations under the License.
  *
- *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2023 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *  International Registered Trademark & Property of PrestaShop SA
+ * @author   Simply.IN Sp. z o.o.
+ * @copyright 2024-2027 Simply.IN Sp. z o.o.
+ * @license   https://joinup.ec.europa.eu/software/page/eupl
  */
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -36,25 +34,15 @@ class Simplyin extends Module
         $this->tab = 'shipping_logistics';
         $this->version = '1.0.0';
         $this->author = 'SimplyIN';
-        $this->need_instance = 1;
-        /*
-         * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
-         */
+		$this->need_instance = 1;
         $this->bootstrap = true;
-        parent::__construct();
-
+		parent::__construct();
         $this->displayName = 'SimplyIN';
-        $this->description = 'simplyin module - quick checkout process';
-
+		$this->description = 'simplyin module - quick checkout process';
         $this->confirmUninstall = $this->l('');
-
-        $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
+		$this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
     }
 
-    /**
-     * Don't forget to create update methods if needed:
-     * http://doc.prestashop.com/display/PS16/Enabling+the+Auto-Update
-     */
     public function install()
     {
         Configuration::updateValue('SIMPLYIN_LIVE_MODE', false);
@@ -124,8 +112,7 @@ class Simplyin extends Module
 
     public function hookActionOrderStatusPostUpdate($params)
     {
-        $newOrderStatus = $params['newOrderStatus']->template;
-        // PrestaShopLogger::addLog('status new' . $newOrderStatus, 1, null, 'Order', 10, true);
+		$newOrderStatus = $params['newOrderStatus']->template;
         $stopStatuses = [
             'order_canceled',
             'payment_error',
@@ -187,10 +174,7 @@ class Simplyin extends Module
     }
 
     public function hookDisplayOrderConfirmation($params)
-    {
-        $orderId = $params['order']->id;
-        $customerId = $params['customer']->id;
-        PrestaShopLogger::addLog("Order $orderId created for customer $customerId", 1, null, 'Order', $orderId, true);
+	{
 
         $context = Context::getContext();
         $shopName = Configuration::get('PS_SHOP_NAME');
@@ -253,7 +237,7 @@ class Simplyin extends Module
 
             $customer_info['products'][] = [
                 'name' => $product['product_name'],
-                'quantity' => int($product['product_quantity']),
+				'quantity' => (int) $product['product_quantity'],
                 'price' => $product['product_price'],
                 'productDescription' => $productDescription,
                 'url' => $productLink,
@@ -263,7 +247,7 @@ class Simplyin extends Module
         }
 
         $context = Context::getContext();
-        $id_lang = $context->language->id; // this will give you the id of the current language
+		// $id_lang = $context->language->id; // this will give you the id of the current language
         $language_code = $context->language->language_code; // this will give you the language code i.e 'en' for English
         $language_name = $context->language->name; // this will give you the name of the language i.e 'English'
 
@@ -295,7 +279,7 @@ class Simplyin extends Module
 
         $order_carrier = new OrderCarrier((int) $order->getIdOrderCarrier());
 
-        $order_id = $order_carrier->id_order;
+		// $order_id = $order_carrier->id_order;
 
         // getting delivery point from inpost module
         if (Module::isInstalled('inpostshipping') && Module::isEnabled('inpostshipping')) {
@@ -329,11 +313,11 @@ class Simplyin extends Module
                 'language_code' => $language_code,
                 'language_name' => $language_name,
                 'orderProducts' => $order->getProducts(),
-                'deliveryPoint' => $deliveryPoint,
+				'deliveryPoint' => $deliveryPoint ?? null,
                 'shopName' => $shopName,
-                                'order_number' => $order_number,
-                                'order' => $order,
-                                'order_payments' => $order_payments,
+				'order_number' => $order_number,
+				'order' => $order,
+				'order_payments' => $order_payments,
             ]
         );
 
@@ -345,8 +329,6 @@ class Simplyin extends Module
             ['position' => 'bottom', 'priority' => 150] // Position and priority
         );
 
-        return $this->display(__FILE__, 'orderConfirmation.tpl');
-        // }
     }
 
     public function uninstall()

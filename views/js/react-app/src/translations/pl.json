@@ -57,6 +57,9 @@
 			"delivery": "Dostawa",
 			"point": "Punkt"
 		},
+		"modal-step-rejected": {
+			"loginRejected": "Logowanie odrzucone"
+		},
 		"modal-form": {
 			"addressNamePlaceholder": "Nazwa adresu",
 			"name": "Imię",

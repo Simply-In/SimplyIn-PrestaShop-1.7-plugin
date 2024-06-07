@@ -1,7 +1,5 @@
 <?php
 
-if (!defined('_PS_VERSION_')) { exit; }
-
 $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__)
     ->exclude('vendor');
@@ -37,6 +35,8 @@ return (new PhpCsFixer\Config())
         'function_declaration' => ['closure_function_spacing' => 'none'],
         'function_typehint_space' => true,
         'include' => true,
+        'indentation_type' => true,
+        'line_ending' => true,
         'lowercase_cast' => true,
         'method_argument_space' => [
             'on_multiline' => 'ensure_fully_multiline',
@@ -73,6 +73,5 @@ return (new PhpCsFixer\Config())
         'unary_operator_spaces' => true,
         'whitespace_after_comma_in_array' => true,
         'align_multiline_comment' => true,
-        'line_ending' => true,
     ])
     ->setFinder($finder);

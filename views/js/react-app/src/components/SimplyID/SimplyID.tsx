@@ -30,7 +30,7 @@ export const CounterContext = createContext<any>({});
 export const isValidEmail = (email: string) => z.string().email().safeParse(email).success
 
 export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
-	const [modalStep, setModalStep] = useState(1)
+	const [modalStep, setModalStep] = useState<1 | 2 | "rejected">(1)
 	const [userData, setUserData] = useState({})
 	const [simplyInput, setSimplyInput] = useState(isUserLoggedIn ? customerEmail : loadDataFromSessionStorage({ key: "UserData" })?.email || loadDataFromSessionStorage({ key: "customChanges" })?.customerForm?.fieldEmail || "");
 
@@ -177,7 +177,7 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 			method: 'POST',
 			requestBody: { "email": simplyInput.trim().toLowerCase(), "notificationTokenId": notificationTokenId }
 		})
-			.then(({ ok, authToken, userData }) => {
+			.then(({ ok, rejected, authToken, userData }) => {
 
 				if (authToken) {
 
@@ -207,6 +207,9 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 						// sameDeliveryAddress
 					})
 
+				} else if (ok === false && rejected === true) {
+					setVisible(true)
+					setModalStep("rejected")
 				} else if (counter < maxAttempts && notificationTokenId) {
 					setTimeout(() => setCounter((prev) => prev + 1), 1000);
 				} else {
