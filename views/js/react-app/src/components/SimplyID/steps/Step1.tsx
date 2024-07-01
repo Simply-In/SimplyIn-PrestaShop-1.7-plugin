@@ -1,15 +1,15 @@
 import { useContext, useEffect, useState } from 'react'
-import { PopupTitle, PopupTextMain, PinInputContainer, PopupTextSecondary, PopupCountDownContainer, PopupCodeNotDelivered, PopupSendAgain, CounterSpan } from '../SimplyID.styled'
+import { PopupTitle, PopupTextMain, PinInputContainer, PopupTextSecondary, PopupCountDownContainer, PopupCodeNotDelivered, PopupSendAgain, CounterSpan, MobileSystemsLinksContainer, SingleSystemLink } from '../SimplyID.styled'
 import { middlewareApi } from '../../../services/middlewareApi'
 import { PopupTextError } from '../../PhoneField/PhoneField.styled'
 import { removeDataSessionStorage, saveDataSessionStorage } from '../../../services/sessionStorageApi'
 import { CounterContext, SelectedDataContext, TypedLoginType } from '../SimplyID'
 import { OtpInput as OtpInputReactJS } from 'reactjs-otp-input'
-import { Link } from '@mui/material'
+import { Divider, Link } from '@mui/material'
 import Countdown from 'react-countdown'
 import { useTranslation } from "react-i18next";
-// import { AndroidIcon } from '../../../assets/AndroidIcon'
-// import { IosIcon } from '../../../assets/IosIcon'
+import { AndroidIcon } from '../../../assets/AndroidIcon'
+import { IosIcon } from '../../../assets/IosIcon'
 import { predefinedFill } from './functions'
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -57,7 +57,8 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 		setSameDeliveryAddress,
 		setPickupPointDelivery,
 		isUserLoggedIn,
-		sameDeliveryAddress
+		sameDeliveryAddress,
+		downloadIconsAllowed
 	} = useContext(SelectedDataContext)
 	const {
 		countdown,
@@ -203,13 +204,13 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 		setIsCodeResended(true)
 		if (method === "email") {
 			setCodeByEmail(true)
-		middlewareApi({
-			endpoint: "checkout/resend-checkout-code-via-email",
-			method: 'POST',
-			requestBody: { "email": simplyInput, language: shortLang(i18n.language) }
-		}).catch((err) => {
-			console.log(err);
-		})
+			middlewareApi({
+				endpoint: "checkout/resend-checkout-code-via-email",
+				method: 'POST',
+				requestBody: { "email": simplyInput, language: shortLang(i18n.language) }
+			}).catch((err) => {
+				console.log(err);
+			})
 		}
 		if (method === "sms") {
 			setCodeByEmail(false)
@@ -220,9 +221,9 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 
 			}).catch((err) => {
 
-			console.log(err);
+				console.log(err);
 
-		})
+			})
 		}
 	}
 	const handleCountdownCompleted = () => {
@@ -410,7 +411,7 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 											>
 												{t('modal-step-1.sendViaEmail')}
 											</Link>
-										</PopupSendAgain>	
+										</PopupSendAgain>
 
 
 								}
@@ -426,17 +427,17 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 
 					</div>
 			}</>
-			{/* {loginType === "pinCode" &&
+			{loginType === "pinCode" && downloadIconsAllowed &&
 				<>
 					<Divider style={{ marginTop: 24, marginBottom: 12 }} />
 					<PopupTextSecondary>
-						Loguj się za pomocą aplikacji. Pobierz teraz.
+					{t('modal-step-1.loginWithApp')}
 					</PopupTextSecondary>
 					<MobileSystemsLinksContainer>
-						<SingleSystemLink href='#'><AndroidIcon />Android</SingleSystemLink>
-						<SingleSystemLink href='#'><IosIcon />iOS</SingleSystemLink>
+					<SingleSystemLink target="_blank" href='https://play.google.com/store/apps/details?id=simplyin.app'><AndroidIcon />Android</SingleSystemLink>
+					<SingleSystemLink target="_blank" href='https://apps.apple.com/pl/app/simply-in/id6476778468?l=pl'><IosIcon />iOS</SingleSystemLink>
 					</MobileSystemsLinksContainer>
-				</>} */}
+				</>}
 		</>
 	)
 }

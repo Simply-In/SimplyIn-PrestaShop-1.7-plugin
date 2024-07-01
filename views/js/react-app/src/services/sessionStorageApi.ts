@@ -21,7 +21,8 @@ type ISessionStorageData = {
 	"selectedShippingMethod" |
 	"isDeliverySelected" |
 	"isBillingSelected" |
-	"sameDeliveryAddress"
+	"sameDeliveryAddress" |
+	"SelectedTab"
 	data: any
 } | {
 	key: "createSimplyAccount"

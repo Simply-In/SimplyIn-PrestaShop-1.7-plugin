@@ -35,7 +35,8 @@
 			"noAccessToMobile": "Don't have access to the app at the moment?",
 			"sendViaSMS": "Send via SMS",
 			"codeHasBeenSentAgain": "The code has been sent",
-			"insertCodeEmail": "Insert code sent to email"
+			"insertCodeEmail": "Insert code sent to email",
+			"loginWithApp": "Log in using the app. Download now."
 		},
 		"modal-step-2": {
 			"address": "Address",
@@ -49,13 +50,15 @@
 			"shippingData": "Shipping data",
 			"addNewShippingData": "Add new shipping data",
 			"doorDelivery": "Door Delivery",
-			"parcelDelivery": "Delivery to a PUDO or APM",
-			"parcelMachines": "PUDO and APM",
-			"addNewParcelData": "Add new PUDO or APM",
+			"parcelDelivery": "Delivery to a parcel machine or PUDO",
+			"addNewParcelData": "Add new APM or PUDO",
 			"sameData": "Billing data is the same as delivery data",
 			"notSelectedDeliveryPoint": "The pick-up point has not been selected",
 			"delivery": "Delivery",
-			"point": "Point"
+			"point": "Point",
+			"pudo": "PUDO",
+			"parcelMachines": "APM",
+			"PudoAndParcelMachines": "Select a parcel machine or PUDO"
 		},
 		"modal-step-rejected": {
 			"loginRejected": "Login rejected"

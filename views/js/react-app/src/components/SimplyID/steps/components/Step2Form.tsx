@@ -15,6 +15,7 @@ import { EditFormMachine } from './EditFormMachine';
 import { EditFormFooter } from './EditFormFooter';
 import { EditFormAddress } from './EditFormAddress';
 import { useTranslation } from "react-i18next";
+import { TabType } from '../Step2';
 
 
 declare global {
@@ -34,6 +35,8 @@ interface IStep2Form {
 	setSelectedShippingIndex: any
 	setSelectedDeliveryPointIndex: any
 	setSameDeliveryAddress: any
+	selectedTab: TabType,
+	setSelectedTab: any
 }
 
 export const Step2Form = ({
@@ -45,7 +48,8 @@ export const Step2Form = ({
 	setSelectedBillingIndex,
 	setSelectedShippingIndex,
 	setSelectedDeliveryPointIndex,
-	setSameDeliveryAddress
+	setSameDeliveryAddress,
+	setSelectedTab
 }: IStep2Form) => {
 	const { t } = useTranslation();
 
@@ -165,6 +169,7 @@ export const Step2Form = ({
 
 	const [lockerIdValue, setLockerIdValue] = useState<string>("")
 	const [additionalInfo, setAdditionalInfo] = useState<string>("")
+	const [pointType, setPointType] = useState<"parcel_machine" | "service_point">("parcel_machine")
 
 	const manuallyChangeLockerId = watch("lockerId")
 	const label = watch("label")
@@ -249,8 +254,9 @@ export const Step2Form = ({
 							setSameDeliveryAddress(false)
 						}
 						if (editItem.property === "parcelLockers") {
-							setSelectedDeliveryPointIndex(res.data.parcelLockers.length - 1 || 0)
-
+							const filteredParcelLockers = newData?.parcelLockers.filter((el: any) => el.service_type === pointType)
+							setSelectedTab(pointType)
+							setSelectedDeliveryPointIndex(filteredParcelLockers.length - 1 || 0)
 						}
 					}
 				}
@@ -361,6 +367,7 @@ export const Step2Form = ({
 							setLockerIdValue={setLockerIdValue}
 							setValue={setValue}
 							setAdditionalInfo={setAdditionalInfo}
+						setPointType={setPointType}
 					/>
 					}
 

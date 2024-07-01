@@ -34,8 +34,8 @@
 			"checkInApp": "Sprawdź powiadomienia w aplikacji mobilnej i zatwierdź logowanie",
 			"noAccessToMobile": "Nie masz w tej chwili dostępu do aplikacji?",
 			"sendViaSMS": "Wyślij kod SMSem",
-			"codeHasBeenSentAgain": "Kod został ponownie wysłany",
-			"insertCodeEmail": "Wpisz kod przesłany na email"
+			"insertCodeEmail": "Wpisz kod przesłany na email",
+			"loginWithApp": "Loguj się za pomocą aplikacji. Pobierz teraz."
 		},
 		"modal-step-2": {
 			"address": "Adres",
@@ -49,13 +49,15 @@
 			"shippingData": "Dane dostawy",
 			"addNewShippingData": "Dodaj nowe dane dostawy",
 			"doorDelivery": "Dostawa pod drzwi",
-			"parcelDelivery": "Dostawa do PUDO lub paczkomaszyny",
-			"parcelMachines": "PUDO i paczkomaszyny",
-			"addNewParcelData": "Dodaj PUDO lub paczkomaszynę",
+			"parcelDelivery": "Dostawa do paczkomaszyny lub PUDO",
+			"addNewParcelData": "Dodaj paczkomaszynę lub PUDO",
 			"sameData": "Dane rozliczeniowe są takie same jak dane dostawy",
 			"notSelectedDeliveryPoint": "Punkt odbioru nie został wybrany",
 			"delivery": "Dostawa",
-			"point": "Punkt"
+			"point": "Punkt",
+			"pudo": "PUDO",
+			"parcelMachines": "Paczkomaszyny",
+			"PudoAndParcelMachines": "Wybierz paczkomaszynę lub PUDO"
 		},
 		"modal-step-rejected": {
 			"loginRejected": "Logowanie odrzucone"

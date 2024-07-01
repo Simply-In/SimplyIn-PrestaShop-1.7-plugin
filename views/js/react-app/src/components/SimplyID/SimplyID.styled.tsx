@@ -185,7 +185,33 @@ display: flex;
 flex-direction:row;
 justify-content: space-between;
 align-items: center;
-margin-bottom:20px;`
+margin-bottom:20px;
+`
+
+export const RadioElementContainerMachine = styled.div`
+	width: 100%;
+	gap: 12px;
+	display: flex;
+	flex-direction:row;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom:20px;
+	
+	& > label {	
+		width:100%;
+		margin-right:0px;
+		& > span:nth-child(2){
+			flex: 1 1 auto;
+		}
+	}
+	`
+
+export const DeliveryPointContainer = styled.div`
+	display: flex;
+	flex-direction:row;
+	width: 100%;
+	justify-content: space-between;
+`
 
 export const DataValueContainer = styled.div`
 display: flex;
@@ -197,12 +223,14 @@ export const DataValueTitle = styled.div`
 text-align:left;
 font-size: 16px;
 font-weight: 700;
+word-break: break-word;
 `
 export const DataValueLabel = styled.div`
 
 font-size: 16px;
 font-weight: 400;
 text-align:left;
+word-break: break-word;
 `
 
 

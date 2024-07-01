@@ -61,7 +61,7 @@ function addNewAddress($customerId, $addressData)
     // $address->id_country = $addressData['id_country']; // Set the country ID
     $address->id_country = $addressData['country'];
 
-    $address->vat_number = $addressData['taxId'];
+	$address->vat_number = $addressData['taxId'] ?? "";
     $address->company = $addressData['companyName'];
     $address->phone = $addressData['phoneNumber'];
 
