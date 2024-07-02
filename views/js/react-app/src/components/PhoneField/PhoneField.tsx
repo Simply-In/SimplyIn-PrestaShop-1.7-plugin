@@ -26,10 +26,15 @@ const MyCustomInput = React.forwardRef((props, ref: any) => (
 	</div>
 ))
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+const valueRegister = SIMPLY_SAVE_CHECKBOX == 1 ? true : false
+
 export const PhoneField = () => {
 
 	const [phoneInput, setPhoneInput] = useState<string>();
-	const [checked, setChecked] = useState(false);
+	const [checked, setChecked] = useState(valueRegister || false);
+
 	const [simplyinToken, setSimplyinToken] = useState<string>("")
 	const [countryCode, setCountryCode] = useState<Country>("PL")
 	const { t } = useTranslation();

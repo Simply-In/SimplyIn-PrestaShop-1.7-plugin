@@ -19,13 +19,15 @@ interface IAddressSearch {
 	setValue: any
 	setAdditionalInfo: any
 	addressNameRef: any
+	setPointType: any
 }
 
 export const AddressSearch = ({
 	setLockerIdValue,
 	setValue,
 	setAdditionalInfo,
-	addressNameRef }:
+	addressNameRef,
+	setPointType }:
 	IAddressSearch) => {
 	const { authToken } = useContext(ApiContext);
 
@@ -92,7 +94,9 @@ export const AddressSearch = ({
 		setValue('address', selectedPoint?.locker?.address || "")
 		setValue('label', selectedPoint?.info?.provider?.name || "")
 		setValue('logoUrl', selectedPoint?.info?.provider?.logoUrl || "")
+		setValue('service_type', selectedPoint?.locker?.service_type || "")
 		setAdditionalInfo(selectedPoint?.locker?.desc || "")
+		setPointType(selectedPoint?.locker?.service_type || "parcel_machine")
 
 		if (addressNameRef?.current) {
 
