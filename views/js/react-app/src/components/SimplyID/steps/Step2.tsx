@@ -1,5 +1,5 @@
-import { useContext, useEffect, useState } from 'react'
-import { PopupHeader, Step2Title, SectionTitle, RadioElementContainer, DataValueContainer, DataValueLabel, DataValueTitle, AddNewData, AddNewDataText, NoDataLabel } from '../SimplyID.styled'
+import { useContext, useEffect, useMemo, useState } from 'react'
+import { PopupHeader, Step2Title, SectionTitle, RadioElementContainer, DataValueContainer, DataValueLabel, DataValueTitle, AddNewData, AddNewDataText, NoDataLabel, RadioElementContainerMachine, DeliveryPointContainer } from '../SimplyID.styled'
 import { IconButton, CardContent, CardActions, Collapse, Button, FormControl, Typography } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { IconButtonProps } from '@mui/material/IconButton';
@@ -18,7 +18,12 @@ import { getPlaceholder, isSameShippingAndBillingAddresses } from './functions';
 import FormGroup from '@mui/material/FormGroup';
 import Checkbox from '@mui/material/Checkbox';
 import { useTranslation } from 'react-i18next';
-
+import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import { DeliveryType, isNumber } from '../../../hooks/useSelectedSimplyData';
 
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -121,6 +126,7 @@ interface IStep2 {
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
 }
+export type TabType = "parcel_machine" | "service_point"
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
 	const { ...other } = props;
@@ -144,8 +150,7 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 		shipping: false,
 		deliveryPoint: true
 	});
-	type DeliveryType = "address" | "machine"
-	const [deliveryType, setDeliveryType] = useState<DeliveryType>("address");
+
 	const {
 		selectedBillingIndex,
 		setSelectedBillingIndex,
@@ -155,11 +160,23 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 		setSameDeliveryAddress,
 		selectedDeliveryPointIndex,
 		setSelectedDeliveryPointIndex,
+
 		pickupPointDelivery,
 		setPickupPointDelivery,
-		simplyInput
+
+		selectedTab,
+		setSelectedTab,
+
+		deliveryType,
+		setDeliveryType,
+		isUserLoggedIn
 	} = useContext(SelectedDataContext)
 
+	const handleChangeTab = (_: React.SyntheticEvent, newValue: TabType) => {
+		setSelectedTab(newValue);
+		setSelectedDeliveryPointIndex(selectedShippingIndex || 0)
+
+	};
 
 
 	useEffect(() => {
@@ -211,6 +228,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 
 			setSelectedShippingIndex(+(event.target as HTMLInputElement).value);
 			setSameDeliveryAddress(false)
+			setPickupPointDelivery(false)
+
 		}
 		else if (type === "parcelLockers") {
 			setSelectedDeliveryPointIndex(+(event.target as HTMLInputElement).value);
@@ -225,6 +244,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 		setEditItemIndex({ property: property, itemIndex: userData[property]?.length ? userData[property]?.length : 0, isNewData: true })
 	}
 
+
+	const filteredParcelLockers = useMemo(() => userData?.parcelLockers.filter((el: any) => selectedTab === "parcel_machine" ? el.service_type === "parcel_machine" : el.service_type !== "parcel_machine"), [selectedTab, userData?.parcelLockers])
 
 
 	const handleSelectData = () => {
@@ -246,14 +267,19 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 			sessionStorage.setItem("BillingIndex", `${selectedBillingIndex}`)
 			sessionStorage.setItem("ShippingIndex", `${selectedShippingIndex}`)
 			sessionStorage.setItem("ParcelIndex", `null`)
+			sessionStorage.setItem("SelectedTab", `${selectedTab}`)
+
 			selectDeliveryMethod({ provider: "default" })
 		} else {
 			sessionStorage.setItem("BillingIndex", `${selectedBillingIndex}`)
 			sessionStorage.setItem("ShippingIndex", `null`)
 			sessionStorage.setItem("ParcelIndex", `${selectedDeliveryPointIndex}`)
+			sessionStorage.setItem("SelectedTab", `${selectedTab}`)
+
 			if (selectedDeliveryPointIndex !== undefined && userData?.parcelLockers[selectedDeliveryPointIndex]?.lockerId) {
 				removeDataSessionStorage({ key: 'isParcelAdded' })
-				selectDeliveryMethod({ deliveryPointID: userData?.parcelLockers[selectedDeliveryPointIndex]?.lockerId });
+				selectDeliveryMethod({ deliveryPointID: filteredParcelLockers[selectedDeliveryPointIndex]?.lockerId });
+
 			}
 
 
@@ -291,7 +317,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 					selectedShippingIndex,
 					userData,
 					selectedBillingIndex,
-					simplyInput
+					simplyInput: userData.email
+
 				})
 		}
 		if (shippingData && !isSameBillingAndShippingAddresses) {
@@ -303,7 +330,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 					selectedShippingIndex,
 					userData,
 					selectedBillingIndex,
-					simplyInput
+					simplyInput: userData.email
+
 				})
 		} else {
 			const billingAddressId = loadDataFromSessionStorage({ key: "billingAddressesId" })
@@ -342,9 +370,11 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 		setDeliveryType((event.target as HTMLInputElement).value as DeliveryType);
 
 		if ((event.target as HTMLInputElement).value === "machine") {
-			if (userData?.parcelLockers?.length && !selectedDeliveryPointIndex) {
-				setSelectedDeliveryPointIndex(0)
+			if (filteredParcelLockers?.length) {
 				setPickupPointDelivery(true)
+				if (!isNumber(selectedDeliveryPointIndex) || selectedDeliveryPointIndex > filteredParcelLockers?.length) {
+					setSelectedDeliveryPointIndex(0)
+				}
 			}
 		}
 		if ((event.target as HTMLInputElement).value === "address") {
@@ -352,6 +382,26 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 			setSameDeliveryAddress(true)
 		}
 	};
+
+	useEffect(() => {
+		const BillingIndex = (loadDataFromSessionStorage({ key: "BillingIndex" }) || 0) as number
+		const ShippingIndex = loadDataFromSessionStorage({ key: "ShippingIndex" }) as number | null
+
+		const ParcelIndex = loadDataFromSessionStorage({ key: "ParcelIndex" }) as number | null
+		// const SelectedTab = loadDataFromSessionStorage({ key: "SelectedTab" }) as TabType
+		const SelectedTab = sessionStorage.getItem("SelectedTab")
+
+		if ((isNumber(ShippingIndex))) {
+			setDeliveryType("address")
+		} else if (isNumber(ParcelIndex)) {
+			setDeliveryType("machine")
+		}
+
+		setSelectedBillingIndex(BillingIndex)
+		setSelectedShippingIndex(ShippingIndex)
+		setSelectedDeliveryPointIndex(ParcelIndex)
+		setSelectedTab(SelectedTab || "parcel_machine")
+	}, [])
 
 
 	return (
@@ -426,6 +476,7 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 											<ContextMenu userData={userData} setUserData={setUserData} item={index} setEditItemIndex={setEditItemIndex} property={'billingAddresses'}
 												selectedPropertyIndex={selectedBillingIndex}
 												setSelectedPropertyIndex={setSelectedBillingIndex}
+												element={el}
 
 											/>
 										</RadioElementContainer>)
@@ -542,7 +593,9 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 													} style={{ marginBottom: 0 }} />
 												<ContextMenu setUserData={setUserData} item={index} setEditItemIndex={setEditItemIndex} property={"shippingAddresses"} userData={userData}
 													selectedPropertyIndex={selectedShippingIndex}
-													setSelectedPropertyIndex={setSelectedShippingIndex} />
+													setSelectedPropertyIndex={setSelectedShippingIndex}
+													element={el}
+												/>
 											</RadioElementContainer>)
 
 									})
@@ -567,7 +620,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 				{deliveryType === "machine" &&
 					<>
 						<CardActions disableSpacing sx={{ padding: 0 }}>
-						<SectionTitle>{t('modal-step-2.parcelMachines')}</SectionTitle>
+						<SectionTitle>{t('modal-step-2.PudoAndParcelMachines')}</SectionTitle>
+
 						<ExpandMore
 							expand={expanded.deliveryPoint}
 							onClick={() => handleExpandClick("deliveryPoint")}
@@ -577,18 +631,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 							<ExpandMoreIcon />
 						</ExpandMore>
 					</CardActions>
-					{/* <FormGroup>
-						<FormControlLabel sx={{
-							textAlign: 'left',
-							fontFamily: 'Inter, sans-serif',
-							'& .MuiTypography-root': {
-								fontFamily: 'Inter, sans-serif'
-							}
-						}} style={{ textAlign: 'left', fontFamily: "Inter, sans-serif" }} control={<Checkbox checked={pickupPointDelivery} onChange={handleChangeDeliveryCheckbox} />} label="Dostawa do paczkomatu" />
-
-					</FormGroup> */}
 					<Collapse in={!expanded.deliveryPoint} timeout="auto" unmountOnExit>
-						{userData?.parcelLockers.length
+						{filteredParcelLockers?.length
 							?
 							<DataValueContainer style={{ padding: 8 }}>
 
@@ -596,13 +640,13 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 
 									<>
 										<DataValueTitle>
-											{userData?.parcelLockers[selectedDeliveryPointIndex]?.addressName || t('modal-step-2.address') + +selectedDeliveryPointIndex + 1}
-
+											{filteredParcelLockers[selectedDeliveryPointIndex]?.addressName ||
+												filteredParcelLockers[selectedDeliveryPointIndex]?.lockerId ||
+												t('modal-step-2.address') + +selectedDeliveryPointIndex + 1}
 										</DataValueTitle>
 										{userData?.deliveryPoints &&
 											<DataValueLabel>
-												{userData?.parcelLockers[selectedDeliveryPointIndex]?.address || ""}
-
+												{filteredParcelLockers[selectedDeliveryPointIndex]?.address || ""}
 											</DataValueLabel>
 										}
 									</>
@@ -623,59 +667,147 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 
 					</Collapse>
 					<Collapse in={expanded.deliveryPoint} timeout="auto" unmountOnExit>
-						<CardContent sx={{ padding: '8px', paddingBottom: '0px !important' }}>
+						<CardContent sx={{ padding: '8px 0px 0px 0px !important' }}>
 							<RadioGroup
 								value={selectedDeliveryPointIndex}
 								aria-labelledby="demo-radio-buttons-group-label"
 								name="radio-buttons-group"
-								onChange={(e) => handleChange(e, "parcelLockers")}
-
+								onChange={(e) => {
+									handleChange(e, "parcelLockers")
+								}}
 							>
-								{userData?.parcelLockers.length
-									?
-									userData?.parcelLockers.map((el: any, index: number) => {
-										return (
-											<RadioElementContainer key={el?._parcelLocker ?? index}>
-												<FormControlLabel value={index} control={<Radio />}
-													label={
-														<div style={{ display: "flex" }}>
+								<TabContext value={selectedTab}>
+									<Box sx={{ borderColor: 'divider' }}>
+										<TabList onChange={handleChangeTab} >
+											<Tab sx={{
+												'&.Mui-selected': {
+													outline: 'none',
+												}
+											}} label={t('modal-step-2.parcelMachines')} value="parcel_machine" style={{ padding: "0px", fontSize: "16px", fontWeight: "700", fontFamily: "Inter, sans-serif", textTransform: "none" }} />
+											<Tab sx={{
+												'&.Mui-selected': {
+													outline: 'none',
+												}
+											}} label={t('modal-step-2.pudo')} value="service_point" style={{ padding: "0px", fontSize: "16px", fontWeight: "700", fontFamily: "Inter, sans-serif" }} />
+										</TabList>
+									</Box>
+									<TabPanel value="parcel_machine" style={{ padding: "24px 4px" }}>
+										{filteredParcelLockers?.length
+											?
+											filteredParcelLockers.map((el: any, index: number) => {
+												return (
+													<RadioElementContainerMachine key={el?.id ?? index} style={{ flexBasis: "100%" }} >
+														<FormControlLabel value={index} control={<Radio />}
+															style={{ flexBasis: "100%" }} sx={{ "span:last-child": { flexBasis: "100%" } }}
+															label={
+																<div style={{ display: "flex", justifyContent: 'space-between', width: "100%", flex: "1 1 auto" }}>
+																	<div style={{ display: "flex" }}>
+																		<div className="logo"
+																			style={{
+																				display: "flex",
+																				justifyContent: "center",
+																				alignItems: "center",
+																				minWidth: "50px",
+																				width: "50px",
+																				marginRight: "8px"
+																			}}>
+																			<img src={el?.logoUrl || getPlaceholder()} alt={el.label || "supplier logo"} style={{
 
-															<div className="logo"
-																style={{
-																	display: "flex",
-																	justifyContent: "center",
-																	alignItems: "center",
-																	minWidth: "50px",
-																	width: "50px",
-																	marginRight: "8px"
-																}}>
-																<img src={el?.logoUrl || getPlaceholder()} alt={el.label || "supplier logo"} style={{
+																				width: '42px',
+																				height: '42px'
+																			}} />
+																		</div>
+																		<DeliveryPointContainer>
+																			<DataValueContainer>
+																				<DataValueTitle>{el?.addressName || el?.lockerId || <>{t('modal-step-2.point')}{" "}{index + 1}</>}</DataValueTitle>
+																				<DataValueLabel>{el?.address ?? ""}</DataValueLabel>
+																			</DataValueContainer>
+																			<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignContent: "center", transform: "scale(1.4)" }}>
+																				{el?.icon || ""}
+																			</div>
+																		</DeliveryPointContainer>
+																	</div>
+																</div>
+															} />
+														<ContextMenu
+															setUserData={setUserData}
+															item={index}
+															element={el}
+															setEditItemIndex={setEditItemIndex}
+															property={"parcelLockers"}
+															userData={userData}
+															selectedPropertyIndex={selectedDeliveryPointIndex}
+															setSelectedPropertyIndex={setSelectedDeliveryPointIndex}
+															selectedTab={selectedTab} />
+													</RadioElementContainerMachine>)
 
-																	width: '42px',
-																	height: '42px'
-																}} />
-															</div>
-															<DataValueContainer>
-																<DataValueTitle>{el?.addressName ?? el?.lockerId ?? <>{t('modal-step-2.point')}{" "}{index + 1}</>}</DataValueTitle>
-																<DataValueLabel>{el?.address ?? ""}</DataValueLabel>
-															</DataValueContainer>
-														</div>
-													} style={{ marginBottom: 0 }} />
-												<ContextMenu
-													setUserData={setUserData}
-													item={index}
-													setEditItemIndex={setEditItemIndex}
-													property={"parcelLockers"}
-													userData={userData}
-													selectedPropertyIndex={selectedDeliveryPointIndex}
-													setSelectedPropertyIndex={setSelectedDeliveryPointIndex} />
-											</RadioElementContainer>)
+											})
+											:
 
-									})
-									:
+											<NoDataLabel>{t('modal-step-2.noData')}</NoDataLabel>
+										}
+									</TabPanel>
+									<TabPanel value="service_point" style={{ padding: "24px 4px" }}>
+										{filteredParcelLockers?.length
+											?
+											filteredParcelLockers.map((el: any, index: number) => {
+												return (
+													<RadioElementContainerMachine key={el?.id ?? index} style={{ flexBasis: "100%" }}>
+														<FormControlLabel value={index} control={<Radio />}
+															style={{ flexBasis: "100%", flex: "1 1 auto" }}
 
-									<NoDataLabel>{t('modal-step-2.noData')}</NoDataLabel>
-								}
+															sx={{ "span:last-child": { flexBasis: "100%" } }}
+
+															label={
+																<div style={{ display: "flex", justifyContent: 'space-between', width: "100%", flex: "1 1 auto", flexBasis: "100%" }}>
+
+																	<div style={{ display: "flex", flexBasis: "100%" }}>
+																		<div className="logo"
+																			style={{
+																				display: "flex",
+																				justifyContent: "center",
+																				alignItems: "center",
+																				minWidth: "50px",
+																				width: "50px",
+																				marginRight: "8px"
+																			}}>
+																			<img src={el?.logoUrl || getPlaceholder()} alt={el.label || "supplier logo"} style={{
+																				width: '42px',
+																				height: '42px'
+																			}} />
+																		</div>
+																		<DeliveryPointContainer >
+																			<DataValueContainer>
+																				<DataValueTitle>{el?.addressName || el?.lockerId || <>{t('modal-step-2.point')}{" "}{index + 1}</>}</DataValueTitle>
+																				<DataValueLabel>{el?.address ?? ""}</DataValueLabel>
+																			</DataValueContainer>
+																			<div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignContent: "center", transform: "scale(1.4)" }}>
+																				{el?.icon || ""}
+																			</div>
+																		</DeliveryPointContainer>
+																	</div>
+																</div>
+															} />
+														<ContextMenu
+															setUserData={setUserData}
+															element={el}
+															item={index}
+															setEditItemIndex={setEditItemIndex}
+															property={"parcelLockers"}
+															userData={userData}
+															selectedPropertyIndex={selectedDeliveryPointIndex}
+															setSelectedPropertyIndex={setSelectedDeliveryPointIndex}
+															selectedTab={selectedTab} />
+													</RadioElementContainerMachine>)
+
+											})
+											:
+
+											<NoDataLabel>{t('modal-step-2.noData')}</NoDataLabel>
+										}
+
+									</TabPanel>
+								</TabContext>
 							</RadioGroup>
 						</CardContent>
 
@@ -705,7 +837,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 
 			</>}
 
-			{editItemIndex?.property &&
+			{
+				editItemIndex?.property &&
 				<Step2Form
 					userData={userData}
 					isNewData={editItemIndex?.isNewData}
@@ -716,6 +849,8 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 					setSelectedShippingIndex={setSelectedShippingIndex}
 					setSelectedDeliveryPointIndex={setSelectedDeliveryPointIndex}
 					setSameDeliveryAddress={setSameDeliveryAddress}
+					selectedTab={selectedTab}
+					setSelectedTab={setSelectedTab}
 				/>
 			}
 

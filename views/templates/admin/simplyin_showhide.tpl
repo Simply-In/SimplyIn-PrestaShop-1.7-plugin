@@ -25,24 +25,10 @@
 	showHideContainer.style.margin="auto auto"
 
 	showHideContainer.style.setProperty("width", "auto", "important");
-	const showhides = () => {
-		const x = document.getElementById("SIMPLYIN_SECRET_KEY");
-		const show = document.querySelector(".show-pass")
-		const hide = document.querySelector(".hide-pass")
-
-		if (x.type === "password") {
-			x.type = "text";
-			show.style.display="none";
-			hide.style.display="";
-		} else {
-			show.style.display="";
-			hide.style.display="none";
-			x.type = "password";
-		}
-	}
+	
 	</script>
 	<div id="showHideContainer">
-			<img src="{$localPath|escape:'html':'UTF-8'}views/img/view.png" onclick="showhides()" class="show-pass eye-icon">
-		<img src="{$localPath|escape:'html':'UTF-8'}views/img/hidden.png" onclick="showhides()" class="hide-pass eye-icon" style="display: none">
+			<img id="showEye" src="{$localPath|escape:'html':'UTF-8'}views/img/view.png"  class="show-pass eye-icon">
+		<img id="hideEye" src="{$localPath|escape:'html':'UTF-8'}views/img/hidden.png"  class="hide-pass eye-icon" style="display: none">
 	</div>
 </div>
