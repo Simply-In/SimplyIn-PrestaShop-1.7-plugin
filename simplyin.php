@@ -38,7 +38,7 @@ class Simplyin extends Module
         $this->bootstrap = true;
 		parent::__construct();
         $this->displayName = 'SimplyIN';
-		$this->description = "simplyin module - quick checkout process st";
+		$this->description = "simplyin module - quick checkout process pp";
         $this->confirmUninstall = $this->l('');
 		$this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
     }
