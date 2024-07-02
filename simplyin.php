@@ -32,13 +32,13 @@ class Simplyin extends Module
     {
         $this->name = 'simplyin';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.0.0';
+        $this->version = "1.0.2";
         $this->author = 'SimplyIN';
 		$this->need_instance = 1;
         $this->bootstrap = true;
 		parent::__construct();
         $this->displayName = 'SimplyIN';
-		$this->description = 'simplyin module - quick checkout process';
+		$this->description = "simplyin module - quick checkout process st";
         $this->confirmUninstall = $this->l('');
 		$this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
     }
@@ -351,6 +351,7 @@ class Simplyin extends Module
         if (((bool) Tools::isSubmit('submitSimplyinModule')) == true) {
             $this->postProcess();
         }
+		$this->context->smarty->assign('simply_save_checkbox', Configuration::get('SIMPLY_SAVE_CHECKBOX'));
 
         $this->context->smarty->assign('module_dir', $this->_path);
 
@@ -483,6 +484,25 @@ class Simplyin extends Module
                         'name' => 'SIMPLYIN_TITLE',
                         'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_contact.tpl'),
                     ],
+					[
+						'type' => 'switch',
+						'id' => "simply-switch",
+						'label' => '',
+						'name' => 'SIMPLY_SAVE_CHECKBOX',
+						'is_bool' => true,
+						'values' => [
+							[
+								'id' => 'active_on',
+								'value' => 1,
+								'label' => ''
+							],
+							[
+								'id' => 'active_off',
+								'value' => 0,
+								'label' => ''
+							]
+						]
+					],
                     [
                         'type' => 'html',
                         'name' => 'SIMPLYIN_TITLE',
@@ -508,6 +528,8 @@ class Simplyin extends Module
             'SIMPLYIN_ACCOUNT_PASSWORD' => Configuration::get('SIMPLYIN_ACCOUNT_PASSWORD', null),
             'SIMPLYIN_SECRET_KEY' => Configuration::get('SIMPLYIN_SECRET_KEY'),
             'INPOST_SECRET_KEY' => Configuration::get('INPOST_SECRET_KEY'),
+			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX'),
+			'SIMPLYIN_TITLE' => Configuration::get('SIMPLYIN_TITLE'),
         ];
     }
 
@@ -518,9 +540,14 @@ class Simplyin extends Module
     {
         $form_values = $this->getConfigFormValues();
 
-        foreach (array_keys($form_values) as $key) {
-            Configuration::updateValue($key, Tools::getValue($key));
-        }
+		foreach (array_keys($form_values) as $key) {
+			$value = Tools::getValue($key);
+			if ($key == 'SIMPLYIN_SECRET_KEY' && $value == '') {
+				// If the user did not enter a new password, keep the old one
+				continue;
+			}
+			Configuration::updateValue($key, $value);
+		}
     }
 
     /**
@@ -574,6 +601,7 @@ class Simplyin extends Module
             'full_shop_url' => Tools::getShopDomain() . $base_url,
             'currentLanguage' => $currentLanguage,
             'customer' => $customer,
+			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX')
         ]);
 
         $this->context->controller->addJS($this->_path . '/views/js/react-app/dist/bundle.js');

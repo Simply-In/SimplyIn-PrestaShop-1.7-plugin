@@ -13,8 +13,6 @@ import { middlewareApi } from "./services/middlewareApi";
 import './i18n.ts'
 
 
-
-
 const isCheckoutPage = document.getElementById('checkout')
 
 if (!isCheckoutPage) {
@@ -40,6 +38,7 @@ const isUserLoggedIn = (customer?.logged === true && customer?.is_guest !== "1")
 //@ts-ignore
 // console.log("isUserLoggedIn", isUserLoggedIn, customer);
 document.addEventListener('DOMContentLoaded', async () => {
+
 
 	console.log('init log presta 1.7')
 

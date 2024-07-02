@@ -1,0 +1,38 @@
+name: Stage versioning
+
+on:
+  workflow_call:
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          token: ${{ secrets.GITHUB_TOKEN }} # Pass the token to the checkout action
+        if: github.event_name != 'workflow_dispatch'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bump version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Pass the token as an environment variable
+        if: github.event_name != 'workflow_dispatch'
+        run: node scripts/bump-version.js --parent-branch=origin/dev
+
+      - name: Trigger deploy on success
+        run: |
+          curl -X POST \
+          -H "Authorization: token ${{ secrets.PAT }}" \
+          -H "Accept: application/vnd.github.everest-preview+json" \
+          "https://api.github.com/repos/${{ github.repository }}/dispatches" \
+          -d '{"event_type": "bump-version-succeeded"}'
+        if: ${{ success() }}
