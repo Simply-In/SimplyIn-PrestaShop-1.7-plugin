@@ -14,7 +14,7 @@ export const useSelectedSimplyData = () => {
 
 	const ParcelIndex = loadDataFromSessionStorage({ key: "ParcelIndex" }) as number | null
 	// const SelectedTab = loadDataFromSessionStorage({ key: "SelectedTab" }) as TabType
-	const SelectedTab = sessionStorage.getItem("selectedTab") as TabType
+	const SelectedTab = sessionStorage.getItem("SelectedTab") as TabType
 
 
 	const [selectedBillingIndex, setSelectedBillingIndex] = useState(BillingIndex || 0);

@@ -147,7 +147,6 @@ export const ContextMenu = ({ userData, element, item, setEditItemIndex, propert
 
 						filteredParcelLockers.filter((el: any, id: number) => {
 							if (currentlySelectedItem && currentlySelectedItem?._id === el?._id) {
-								// console.log('for new selection this element', el, "and id:", id);
 								setSelectedPropertyIndex(id)
 								saveDataSessionStorage({ key: customKey as "ParcelIndex" | "BillingIndex" | "ShippingIndex", data: id })
 							}

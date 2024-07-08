@@ -1,11 +1,11 @@
 {
 	"translation": {
 		"taxID": "Tax ID",
-		"emailPlaceholder": "Insert your email. 🤠🙈💥",
-		"headerTitle": "Quick and safe with",
+		"emailPlaceholder": "Insert your email",
+		"headerTitle": "Ocean-click shopping",
 		"payment": {
 			"paymentTitle-1": "New!",
-			"paymentTitle-2": "Save your details with Simply.IN to quickly and safely purchase products here and at other stores",
+			"paymentTitle-2": "Save your details so that next time you can buy with one click in this and other stores.",
 			"createAccountDescription-1": "Next time you make a payment here or at other stores using",
 			"createAccountDescription-2": ", you will receive a code by SMS and can safely shop using",
 			"createAccountDescription-3": "By clicking the \"Order\" button or analogous button, I confirm that I have read and accept",

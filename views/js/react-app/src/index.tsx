@@ -88,7 +88,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 		const parcelIndex = loadDataFromSessionStorage({ key: "ParcelIndex" })
 		const userData = loadDataFromSessionStorage({ key: "UserData" })
 
-		const parcelId = userData?.parcelLockers[parcelIndex]?.lockerId
+		const SelectedTab = sessionStorage.getItem("SelectedTab")
+
+		const filteredParcelLockers = userData?.parcelLockers.filter((el: any) => SelectedTab === "parcel_machine" ? el.service_type === "parcel_machine" : el.service_type !== "parcel_machine")
+		const parcelId = filteredParcelLockers?.length ? filteredParcelLockers[parcelIndex]?.lockerId : undefined
 
 		if (!isNaN(parcelIndex) && !isParcelAdded && parcelId) {
 			selectDeliveryMethod({ deliveryPointID: parcelId });

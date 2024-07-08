@@ -51,11 +51,12 @@ $body['apiKey'] = $apiKey;
 
 $body['merchantApiKey'] = $apiKey;
 
+$backend_url = "https://stage.backend.simplyin.app/api/";
+
 if (!empty($token)) {
-    // $url = 'https://prod.backend.simply.in/api/' . $endpoint . '?api_token=' . urlencode($token);
-    $url = 'https://stage.backend.simplyin.app/api/' . $endpoint . '?api_token=' . urlencode($token);
+	$url = $backend_url . $endpoint . '?api_token=' . urlencode($token);
 } else {
-    $url = 'https://stage.backend.simplyin.app/api/' . $endpoint;
+	$url = $backend_url . $endpoint;
 }
 // $headers = ['Content-Type: application/json'];
 $headers = ['Content-Type: application/json', 'Origin: ' . $origin];
