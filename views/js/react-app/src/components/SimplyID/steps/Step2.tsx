@@ -701,7 +701,7 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 															style={{ flexBasis: "100%" }} sx={{ "span:last-child": { flexBasis: "100%" } }}
 															label={
 																<div style={{ display: "flex", justifyContent: 'space-between', width: "100%", flex: "1 1 auto" }}>
-																	<div style={{ display: "flex" }}>
+																	<div style={{ display: "flex", flexBasis: "100%" }}>
 																		<div className="logo"
 																			style={{
 																				display: "flex",
