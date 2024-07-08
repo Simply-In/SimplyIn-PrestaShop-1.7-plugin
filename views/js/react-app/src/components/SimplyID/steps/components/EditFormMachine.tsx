@@ -30,7 +30,7 @@ const domain = urlObject.hostname;
 
 // Set up the request configuration
 const apiUrl = 'https://api.inpost.pl/v1/points';
-const params = new URLSearchParams({
+const paramsUrl = new URLSearchParams({
 	limit: "1",
 	relative_point: '52.229676,21.012229',
 });
@@ -65,7 +65,7 @@ export const EditFormMachine = ({
 	const [isMapVisible, setIsMapVisible] = useState(true)
 
 	const isInpostKeyValid = () => {
-		const url = `${apiUrl}?${params}`;
+		const url = `${apiUrl}?${paramsUrl}`;
 		fetch(url, config)
 			.then(response => {
 
