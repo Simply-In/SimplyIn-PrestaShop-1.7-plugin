@@ -251,7 +251,9 @@ export const useInsertFormData = (userData: any, listOfCountries: any) => {
 		if (ParcelIndex === "null") {
 			selectDeliveryMethod({ provider: "default" })
 		} else if (userData?.parcelLockers?.lockerId) {
-			selectDeliveryMethod({ deliveryPointID: userData?.parcelLockers?.lockerId })
+			const filteredParcelLockers = userData?.parcelLockers.filter((el: any) => selectedTab === "parcel_machine" ? el.service_type === "parcel_machine" : el.service_type !== "parcel_machine")
+			const parcelId = filteredParcelLockers[selectedDeliveryPointIndex]?.lockerId
+			selectDeliveryMethod({ deliveryPointID: parcelId })
 		}
 
 

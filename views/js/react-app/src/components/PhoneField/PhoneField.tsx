@@ -30,6 +30,7 @@ const MyCustomInput = React.forwardRef((props, ref: any) => (
 //@ts-ignore
 const valueRegister = SIMPLY_SAVE_CHECKBOX == 1 ? true : false
 
+
 export const PhoneField = () => {
 
 	const [phoneInput, setPhoneInput] = useState<string>();
@@ -50,23 +51,23 @@ export const PhoneField = () => {
 
 
 
-			const selectedInvoiceAddress = document.getElementById("invoice-addresses")?.querySelector(".selected")
+		const selectedInvoiceAddress = document.getElementById("invoice-addresses")?.querySelector(".selected")
 
-			let selectedDeliveryAddress = null
-			if (!selectedInvoiceAddress) {
-				selectedDeliveryAddress = document.getElementById("delivery-addresses")?.querySelector(".selected")
-			}
+		let selectedDeliveryAddress = null
+		if (!selectedInvoiceAddress) {
+			selectedDeliveryAddress = document.getElementById("delivery-addresses")?.querySelector(".selected")
+		}
 
 
-			const addressData = selectedInvoiceAddress ?? selectedDeliveryAddress
-			const allAddressDataArray = addressData?.querySelector('.address')?.innerHTML.split("<br>")
+		const addressData = selectedInvoiceAddress ?? selectedDeliveryAddress
+		const allAddressDataArray = addressData?.querySelector('.address')?.innerHTML.split("<br>")
 		let phoneInputField = ""
 		let phoneVal = ""
 		if (allAddressDataArray?.length) {
-				phoneInputField = allAddressDataArray[allAddressDataArray.length - 1]
-				phoneVal = allAddressDataArray[allAddressDataArray.length - 1].replace(/^00|^0/, '+')
+			phoneInputField = allAddressDataArray[allAddressDataArray.length - 1]
+			phoneVal = allAddressDataArray[allAddressDataArray.length - 1].replace(/^00|^0/, '+')
 
-			}
+		}
 
 		if (!phoneVal) return
 
@@ -153,6 +154,9 @@ export const PhoneField = () => {
 			setSimplyinToken(simplyinTokenFromStorage || "")
 		}
 
+		sessionStorage.setItem("createSimplyAccount", `${valueRegister || false}`)
+
+
 	}, [])
 
 
@@ -183,20 +187,20 @@ export const PhoneField = () => {
 
 
 
-		{!simplyinToken && <>
-			<CheckboxContainer>
-				<Checkbox
+			{!simplyinToken && <>
+				<CheckboxContainer>
+					<Checkbox
 						style={{ marginLeft: "-11px" }}
-					id="simply-save-checkbox"
-					name="simply-save-checkbox"
-					checked={simplyinToken ? !!simplyinToken : checked}
-					onChange={handleChangeCheckbox}
-					inputProps={{ 'aria-label': 'controlled' }} />
-				<CheckboxLabel onClick={() => handleChangeCheckbox()}>
+						id="simply-save-checkbox"
+						name="simply-save-checkbox"
+						checked={simplyinToken ? !!simplyinToken : checked}
+						onChange={handleChangeCheckbox}
+						inputProps={{ 'aria-label': 'controlled' }} />
+					<CheckboxLabel onClick={() => handleChangeCheckbox()}>
 						<span>{t('payment.paymentTitle-1')}
 						</span> {t('payment.paymentTitle-2')}
-				</CheckboxLabel>
-			</CheckboxContainer>
+					</CheckboxLabel>
+				</CheckboxContainer>
 
 				<div onClick={BubblingHandling}>
 					{checked && <>
@@ -212,7 +216,7 @@ export const PhoneField = () => {
 							value={phoneInput}
 							//@ts-ignore
 							onChange={phoneChange}
-							inputComponent={MyCustomInput} /> 
+							inputComponent={MyCustomInput} />
 
 						{error && <div style={{ color: '#ff8000' }}>{error}</div>}
 						<Divider style={{ marginTop: "16px", marginBottom: "16px" }} />
@@ -224,8 +228,8 @@ export const PhoneField = () => {
 						<PhoneInputDescriptionLink href="https://simply.in/" target="_blank">{" "}Simply.IN</PhoneInputDescriptionLink>
 						{t('payment.createAccountDescription-2')}
 						<PhoneInputDescriptionLink href={"./"} target="_blank">{" "}Simply.IN.</PhoneInputDescriptionLink>
-				</PhoneInputDescription>
-				<PhoneInputDescriptionSecondary>
+					</PhoneInputDescription>
+					<PhoneInputDescriptionSecondary>
 						{t('payment.createAccountDescription-3')}
 						<PhoneInputDescriptionLink href="https://simply.in/terms-and-conditions" target="_blank">{" "}	{t('payment.createAccountDescription-4')}
 							{" "}Simply.In.{" "}</PhoneInputDescriptionLink >
@@ -233,12 +237,12 @@ export const PhoneField = () => {
 						<PhoneInputDescriptionLink href="https://simply.in/" target="_blank">{" "}Simply.In.</PhoneInputDescriptionLink>
 						{t('payment.createAccountDescription-6')}
 						<PhoneInputDescriptionLink href="https://simply.in/gdpr-rules" target="_blank">{" "}{t('payment.createAccountDescription-7')}</PhoneInputDescriptionLink>
-				</PhoneInputDescriptionSecondary>
+					</PhoneInputDescriptionSecondary>
 
 
-			</>}
-		</>
-		}
+				</>}
+			</>
+			}
 
 		</div>
 	)

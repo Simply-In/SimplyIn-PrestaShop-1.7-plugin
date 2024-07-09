@@ -20,74 +20,75 @@
  * @copyright 2024-2027 Simply.IN Sp. z o.o.
  * @license   https://joinup.ec.europa.eu/software/page/eupl
  */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-const isUserLoggedIn = customer?.logged === true && customer?.is_guest !== "1";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-const userEmail = isUserLoggedIn ? customer?.email : "";
 
-const middlewareApiTwo = async ({ endpoint, method, requestBody, token }) => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  const baseUrl = base_url || ".";
 
-  const url = `${baseUrl}./modules/simplyin/api/submitData.php`;
-  const headers = {
-    "Content-Type": "application/json",
-  };
+$(document).ready(async function () {
+  const middlewareApiTwo = async ({ endpoint, method, requestBody, token }) => {
+    const baseUrl = base_url || ".";
 
-  const body = JSON.stringify({
-    endpoint,
-    method,
-    requestBody,
-    ...(token ? { token } : {}),
-  });
+    const url = `${baseUrl}./modules/simplyin/api/submitData.php`;
+    const headers = {
+      "Content-Type": "application/json",
+    };
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
+    const body = JSON.stringify({
+      endpoint,
+      method,
+      requestBody,
+      ...(token ? { token } : {}),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error(error);
     }
+  };
 
-    const responseData = await response.json();
-    return responseData;
-  } catch (error) {
-    console.error(error);
-  }
-};
+  //   const isUserLoggedIn2 =
+  // 	customer?.logged === true && customer?.is_guest !== "1";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-const extensionVersion = extension_version || "";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-const prestashopVersion = prestashop_version || "";
+  const userEmail2 =
+    customer?.logged === true && customer?.is_guest !== "1"
+      ? customer?.email
+      : "";
 
-const loadDataFromSessionStorageTwo = ({ key }) => {
-  try {
-    const serializedData = sessionStorage.getItem(key);
-    if (serializedData === null) {
+  const loadDataFromSessionStorageTwo = ({ key }) => {
+    try {
+      const serializedData = sessionStorage.getItem(key);
+
+      if (serializedData === null) {
+        return undefined;
+      }
+
+      return JSON.parse(serializedData);
+    } catch (error) {
+      console.error("Error loading data", error);
       return undefined;
     }
-    return JSON.parse(serializedData);
-  } catch (error) {
-    console.error("Error loading data", error);
-    return undefined;
-  }
-};
+  };
 
-const getLangBrowser = () => {
-  if (navigator.languages !== undefined) return navigator.languages[0];
-  else return navigator.language;
-};
-$(document).ready(async function () {
+  let extensionVersion = extension_version || "";
+
+  let prestashopVersion = prestashop_version || "";
+
+  let getLangBrowser = () => {
+    if (navigator.languages !== undefined) return navigator.languages[0];
+    else return navigator.language;
+  };
+
   let shortLang = (lang) => lang.substring(0, 2).toUpperCase();
 
   const BillingIndex = loadDataFromSessionStorageTwo({
@@ -99,6 +100,8 @@ $(document).ready(async function () {
   const UserData = loadDataFromSessionStorageTwo({
     key: "UserData",
   });
+
+  const phoneNumber = loadDataFromSessionStorageTwo({ key: "phoneNumber" });
 
   const billingAddresses = {
     _id: UserData?.billingAddresses[BillingIndex]?._id,
@@ -147,7 +150,6 @@ $(document).ready(async function () {
     key: "createSimplyAccount",
   });
 
-  const phoneNumber = loadDataFromSessionStorageTwo({ key: "phoneNumber" });
   const simplyinToken = sessionStorage.getItem("simplyinToken");
 
   if (createAccount && !simplyinToken) {
@@ -172,14 +174,19 @@ $(document).ready(async function () {
       },
       plugin_version: extensionVersion,
       shopVersion: prestashopVersion,
-      shopUserEmail: userEmail || undefined,
+      shopUserEmail: userEmail2 || undefined,
     };
 
     middlewareApiTwo({
       endpoint: "checkout/createOrderAndAccount",
       method: "POST",
       requestBody: newAccountSendData,
-    }).then((res) => {});
+    }).then((res) => {
+      sessionStorage.removeItem("phoneNumber");
+      sessionStorage.removeItem("isSimplyDataSelected");
+      sessionStorage.removeItem("createSimplyAccount");
+      sessionStorage.removeItem("CustomChanges");
+    });
   }
 
   if (simplyinToken) {
@@ -196,7 +203,7 @@ $(document).ready(async function () {
       },
       plugin_version: extensionVersion,
       shopVersion: prestashopVersion,
-      shopUserEmail: userEmail || undefined,
+      shopUserEmail: userEmail2 || undefined,
     };
 
     middlewareApiTwo({
@@ -213,10 +220,12 @@ $(document).ready(async function () {
       sessionStorage.removeItem("phoneNumber");
       sessionStorage.removeItem("simplyinToken");
       sessionStorage.removeItem("selectedShippingMethod");
-      sessionStorage.removeItem("CustomChanges");
+      sessionStorage.removeItem("customChanges");
       sessionStorage.removeItem("inpost-delivery-point");
       sessionStorage.removeItem("isBillingSelected");
       sessionStorage.removeItem("isDeliverySelected");
+      sessionStorage.removeItem("SelectedTab");
+      sessionStorage.removeItem("createSimplyAccount");
     });
   }
 });

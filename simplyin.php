@@ -22,391 +22,402 @@
  * @license   https://joinup.ec.europa.eu/software/page/eupl
  */
 if (!defined('_PS_VERSION_')) {
-    exit;
+	exit;
 }
 class Simplyin extends Module
 {
-    protected $config_form = false;
+	protected $config_form = false;
 
     public function __construct()
     {
         $this->name = 'simplyin';
         $this->tab = 'shipping_logistics';
-        $this->version = "1.0.2";
+        $this->version = "1.0.6";
         $this->author = 'SimplyIN';
 		$this->need_instance = 1;
-        $this->bootstrap = true;
+		$this->bootstrap = true;
 		parent::__construct();
+
         $this->displayName = 'SimplyIN';
 		$this->description = "simplyin module - quick checkout process pp";
         $this->confirmUninstall = $this->l('');
 		$this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
-    }
+	}
 
-    public function install()
-    {
-        Configuration::updateValue('SIMPLYIN_LIVE_MODE', false);
+	public function install()
+	{
+		Configuration::updateValue('SIMPLYIN_LIVE_MODE', false);
 
-        include dirname(__FILE__) . '/sql/install.php';
+		include dirname(__FILE__) . '/sql/install.php';
 
-        return parent::install()
-            && $this->registerHook('header')
-            && $this->registerHook('actionOrderStatusPostUpdate')
-            && $this->registerHook('displayBackOfficeHeader')
-            && $this->registerHook('displayOrderConfirmation')
-            && $this->registerHook('displayBeforeCarrier')
-            && $this->registerHook('actionCarrierProcess')
-            && $this->registerHook('updateOrderStatus')
-            && $this->registerHook('actionValidateOrder');
-    }
+		return parent::install()
+			&& $this->registerHook('header')
+			&& $this->registerHook('actionOrderStatusPostUpdate')
+			&& $this->registerHook('displayBackOfficeHeader')
+			&& $this->registerHook('displayOrderConfirmation')
+			&& $this->registerHook('displayBeforeCarrier')
+			&& $this->registerHook('actionCarrierProcess')
+			&& $this->registerHook('updateOrderStatus')
+			&& $this->registerHook('actionValidateOrder');
+	}
 
-    public function encrypt($plaintext, $secret_key, $cipher = 'aes-256-cbc')
-    {
-        $ivlen = openssl_cipher_iv_length($cipher);
-        $iv = openssl_random_pseudo_bytes($ivlen);
+	public function encrypt($plaintext, $secret_key, $cipher = 'aes-256-cbc')
+	{
+		$ivlen = openssl_cipher_iv_length($cipher);
+		$iv = openssl_random_pseudo_bytes($ivlen);
 
-        $ciphertext_raw = openssl_encrypt($plaintext, $cipher, $secret_key, OPENSSL_RAW_DATA, $iv);
-        if ($ciphertext_raw === false) {
-            return false;
-        }
+		$ciphertext_raw = openssl_encrypt($plaintext, $cipher, $secret_key, OPENSSL_RAW_DATA, $iv);
+		if ($ciphertext_raw === false) {
+			return false;
+		}
 
-        return base64_encode($iv . $ciphertext_raw);
-    }
+		return base64_encode($iv . $ciphertext_raw);
+	}
 
-    public function hashEmail($order_email)
-    {
-        return hash('sha256', '--' . $order_email . '--');
-    }
+	public function hashEmail($order_email)
+	{
+		return hash('sha256', '--' . $order_email . '--');
+	}
 
-    public function send_encrypted_data($encrypted_data)
-    {
-        $url = 'https://stage.backend.simplyin.app/api/encryption/saveEncryptedOrderStatusChange';
+	public function send_encrypted_data($encrypted_data)
+	{
+		$backend_url = "https://stage.backend.simplyin.app/api/";
+		$url = $backend_url . 'encryption/saveEncryptedOrderStatusChange';
+		$base_url = __PS_BASE_URI__;
+		// $headers = ['Content-Type: application/json'];
+		$headers = ['Content-Type: application/json', 'Origin: ' . $base_url];
 
-        $base_url = __PS_BASE_URI__;
-        $headers = ['Content-Type: application/json', 'Origin: ' . $base_url];
+		$ch = curl_init();
 
-        $ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $encrypted_data);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $encrypted_data);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return the response as a string instead of outputting it
 
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return the response as a string instead of outputting it
+		// Execute cURL session
+		$response = curl_exec($ch);
 
-        // Execute cURL session
-        $response = curl_exec($ch);
+		// PrestaShopLogger::addLog('send' . $encrypted_data, 1, null, 'Order', 10, true);
+		// PrestaShopLogger::addLog('resp' . $response, 1, null, 'Order', 10, true);
 
-        // PrestaShopLogger::addLog('send' . $encrypted_data, 1, null, 'Order', 10, true);
-        // PrestaShopLogger::addLog('resp' . $response, 1, null, 'Order', 10, true);
+		curl_close($ch);
 
-        curl_close($ch);
+		return $response;
+	}
 
-        return $response;
-    }
+	public function getSecretKey($order_email)
+	{
+		return hash('sha256', '__' . $order_email . '__', true);
+	}
 
-    public function getSecretKey($order_email)
-    {
-        return hash('sha256', '__' . $order_email . '__', true);
-    }
-
-    public function hookActionOrderStatusPostUpdate($params)
-    {
+	public function hookActionOrderStatusPostUpdate($params)
+	{
 		$newOrderStatus = $params['newOrderStatus']->template;
-        $stopStatuses = [
-            'order_canceled',
-            'payment_error',
-            '',
-            'cheque',
-            'bankwire',
-            'cashondelivery',
-            'preparation',
-            'payment',
-            'outofstock',
-            'refund',
-        ];
-        if (in_array($newOrderStatus, $stopStatuses, true)) {
-            return;
-        }
+		$stopStatuses = [
+			'order_canceled',
+			'payment_error',
+			'',
+			'cheque',
+			'bankwire',
+			'cashondelivery',
+			'preparation',
+			'payment',
+			'outofstock',
+			'refund',
+		];
+		if (in_array($newOrderStatus, $stopStatuses, true)) {
+			return;
+		}
 
-        $id_order = $params['id_order'];
-        $order = new Order($id_order);
+		$id_order = $params['id_order'];
+		$order = new Order($id_order);
 
-        $order_reference = $order->reference;
+		$order_reference = $order->reference;
 
-        $shipping_data = $order->getShipping();
+		$shipping_data = $order->getShipping();
 
-        $tracking_numbers = [];
+		$tracking_numbers = [];
 
-        foreach ($shipping_data as $carrier) {
-            $tracking_numbers[] = $carrier['tracking_number'];
-        }
+		foreach ($shipping_data as $carrier) {
+			$tracking_numbers[] = $carrier['tracking_number'];
+		}
 
-        $customer = $order->getCustomer();
-        $order_email = $customer->email;
+		$customer = $order->getCustomer();
+		$order_email = $customer->email;
 
-        if (empty($order_email)) {
-            return;
-        }
-        $apiKey = Configuration::get('SIMPLYIN_SECRET_KEY');
+		if (empty($order_email)) {
+			return;
+		}
+		$apiKey = Configuration::get('SIMPLYIN_SECRET_KEY');
 
-        $body_data = [
-            'email' => $order_email,
-            'shopOrderNumber' => $order_reference,
-            'newOrderStatus' => $newOrderStatus,
-            'apiKey' => $apiKey,
-            'trackingNumbers' => $tracking_numbers,
-        ];
+		$body_data = [
+			'email' => $order_email,
+			'shopOrderNumber' => $order_reference,
+			'newOrderStatus' => $newOrderStatus,
+			'apiKey' => $apiKey,
+			'trackingNumbers' => $tracking_numbers,
+		];
 
-        $plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
+		$plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
 
-        $key = getSecretKey($order_email);
+		$key = getSecretKey($order_email);
 
-        $encryptedData = $this->encrypt($plaintext, $key);
+		$encryptedData = $this->encrypt($plaintext, $key);
 
-        $hashedEmail = $this->hashEmail($order_email);
+		$hashedEmail = $this->hashEmail($order_email);
 
-        $orderData = [];
-        $orderData['encryptedOrderStatusChangeContent'] = $encryptedData;
-        $orderData['hashedEmail'] = $hashedEmail;
+		$orderData = [];
+		$orderData['encryptedOrderStatusChangeContent'] = $encryptedData;
+		$orderData['hashedEmail'] = $hashedEmail;
 
-        $this->send_encrypted_data(json_encode($orderData));
-    }
+		$this->send_encrypted_data(json_encode($orderData));
+	}
 
-    public function hookDisplayOrderConfirmation($params)
+	public function hookDisplayOrderConfirmation($params)
 	{
 
-        $context = Context::getContext();
-        $shopName = Configuration::get('PS_SHOP_NAME');
-        // Get the order object from the params
-        $order = $params['order'];
-        // $currency = $order->getCurrency();
-        // Get the customer's delivery and billing address id from the order
-        $deliveryAddressId = $order->id_address_delivery;
-        $billingAddressId = $order->id_address_invoice;
 
-        // Create an Address object from the address id
-        $deliveryAddress = new Address($deliveryAddressId);
-        $billingAddress = new Address($billingAddressId);
 
-        // Fetch details of delivery and billing address
-        $deliveryCountry = new Country($deliveryAddress->id_country);
-        $deliveryState = new State($deliveryAddress->id_state);
+		$context = Context::getContext();
+		$shopName = Configuration::get('PS_SHOP_NAME');
+		// Get the order object from the params
+		$order = $params['order'];
+		// $currency = $order->getCurrency();
+		// Get the customer's delivery and billing address id from the order
+		$deliveryAddressId = $order->id_address_delivery;
+		$billingAddressId = $order->id_address_invoice;
 
-        $billingCountry = new Country($billingAddress->id_country);
-        $billingState = new State($billingAddress->id_state);
+		// Create an Address object from the address id
+		$deliveryAddress = new Address($deliveryAddressId);
+		$billingAddress = new Address($billingAddressId);
 
-        $customer = new Customer($order->id_customer);
-        $currencyId = $order->id_currency;
-        $currency = Currency::getCurrencyInstance((int) $currencyId);
-        $currencyISO = $currency->iso_code;
+		// Fetch details of delivery and billing address
+		$deliveryCountry = new Country($deliveryAddress->id_country);
+		$deliveryState = new State($deliveryAddress->id_state);
 
-        $customer_info = [
-            'id_order' => (int) $order->id,
-            'reference' => $order->reference,
-            'total_paid' => $order->total_paid,
-            'quantity' => (int) $order->quantity,
-            'id_customer' => $this->context->customer->id,
-            'data-order' => $params->order,
-        ];
+		$billingCountry = new Country($billingAddress->id_country);
+		$billingState = new State($billingAddress->id_state);
 
-        $customer_info['products'] = [];
+		$customer = new Customer($order->id_customer);
+		$currencyId = $order->id_currency;
+		$currency = Currency::getCurrencyInstance((int) $currencyId);
+		$currencyISO = $currency->iso_code;
 
-        $orderProducts = $order->getProducts();
-        foreach ($orderProducts as $product) {
-            $productId = $product['product_id'];
+		$customer_info = [
+			'id_order' => (int) $order->id,
+			'reference' => $order->reference,
+			'total_paid' => $order->total_paid,
+			'quantity' => (int) $order->quantity,
+			'id_customer' => $this->context->customer->id,
+			'data-order' => $params->order,
+		];
 
-            $productName = $product['product_name'];
+		$customer_info['products'] = [];
 
-            $productImage = Image::getCover($productId);
-            if ($productImage) {
-                $productImageUrl = _PS_BASE_URL_ . _THEME_PROD_DIR_ . $productImage['id_image'] . '-' . ImageType::getFormattedName('large') . '/' . $productName . '.jpg';
-            } else {
-                // If no image is available, you can use a default image or handle it as needed
-                $productImageUrl = _PS_IMG_ . 'p/' . (int) $productId . '-' . (int) $product['id_image'] . '.jpg';
-            }
+		$orderProducts = $order->getProducts();
+		foreach ($orderProducts as $product) {
+			$productId = $product['product_id'];
 
-            $productThumbnailId = Product::getCover($productId)['id_image'];
+			$productName = $product['product_name'];
 
-            $productObj = new Product($productId, false, $context->language->id);
+			$productImage = Image::getCover($productId);
+			if ($productImage) {
+				$productImageUrl = _PS_BASE_URL_ . _THEME_PROD_DIR_ . $productImage['id_image'] . '-' . ImageType::getFormattedName('large') . '/' . $productName . '.jpg';
+			} else {
+				// If no image is available, you can use a default image or handle it as needed
+				$productImageUrl = _PS_IMG_ . 'p/' . (int) $productId . '-' . (int) $product['id_image'] . '.jpg';
+			}
 
-            $productDescription = strip_tags($productObj->description);
+			$productThumbnailId = Product::getCover($productId)['id_image'];
 
-            $productLink = $context->link->getProductLink($product);
-            $thumbnailUrl = $context->link->getImageLink($productName, $productThumbnailId, ImageType::getFormattedName('small'));
+			$productObj = new Product($productId, false, $context->language->id);
 
-            $customer_info['products'][] = [
-                'name' => $product['product_name'],
+			$productDescription = strip_tags($productObj->description);
+
+			$productLink = $context->link->getProductLink($product);
+			$thumbnailUrl = $context->link->getImageLink($productName, $productThumbnailId, ImageType::getFormattedName('small'));
+
+			$customer_info['products'][] = [
+				'name' => $product['product_name'],
 				'quantity' => (int) $product['product_quantity'],
-                'price' => $product['product_price'],
-                'productDescription' => $productDescription,
-                'url' => $productLink,
-                'thumbnailUrl' => $thumbnailUrl,
-                'currency' => $currencyISO,
-            ];
-        }
+				'price' => $product['product_price'],
+				'productDescription' => $productDescription,
+				'url' => $productLink,
+				'thumbnailUrl' => $thumbnailUrl,
+				'currency' => $currencyISO,
+			];
+		}
 
-        $context = Context::getContext();
+
+		$context = Context::getContext();
 		// $id_lang = $context->language->id; // this will give you the id of the current language
-        $language_code = $context->language->language_code; // this will give you the language code i.e 'en' for English
-        $language_name = $context->language->name; // this will give you the name of the language i.e 'English'
+		$language_code = $context->language->language_code; // this will give you the language code i.e 'en' for English
+		$language_name = $context->language->name; // this will give you the name of the language i.e 'English'
 
-        $carrier = new Carrier((int) $order->id_carrier);
+		$carrier = new Carrier((int) $order->id_carrier);
 
-        $delivery_method = [
-            'id_reference' => $carrier->id_reference,
-            'id_tax_rules_group' => $carrier->id_tax_rules_group,
-            'id_carrier' => $carrier->id_carrier,
-            'deleted' => $carrier->deleted,
-            'shipping_handling' => $carrier->shipping_handling,
-            'range_behavior' => $carrier->range_behavior,
-            'is_module' => $carrier->is_module,
-            'is_free' => $carrier->is_free,
-            'shipping_external' => $carrier->shipping_external,
-            'need_range' => $carrier->need_range,
-            'external_module_name' => $carrier->external_module_name,
-            'shipping_method' => $carrier->shipping_method,
-            'position' => $carrier->position,
-            'win_distance' => $carrier->win_distance,
-            'max_delivery_delay' => $carrier->max_delivery_delay,
-            'grade' => $carrier->grade,
-            'url' => $carrier->url,
-            'active' => $carrier->active,
-            'delay' => $carrier->delay,
-            'name' => $carrier->name,
-            'all' => $carrier,
-        ];
+		$delivery_method = [
+			'id_reference' => $carrier->id_reference,
+			'id_tax_rules_group' => $carrier->id_tax_rules_group,
+			'id_carrier' => $carrier->id_carrier,
+			'deleted' => $carrier->deleted,
+			'shipping_handling' => $carrier->shipping_handling,
+			'range_behavior' => $carrier->range_behavior,
+			'is_module' => $carrier->is_module,
+			'is_free' => $carrier->is_free,
+			'shipping_external' => $carrier->shipping_external,
+			'need_range' => $carrier->need_range,
+			'external_module_name' => $carrier->external_module_name,
+			'shipping_method' => $carrier->shipping_method,
+			'position' => $carrier->position,
+			'win_distance' => $carrier->win_distance,
+			'max_delivery_delay' => $carrier->max_delivery_delay,
+			'grade' => $carrier->grade,
+			'url' => $carrier->url,
+			'active' => $carrier->active,
+			'delay' => $carrier->delay,
+			'name' => $carrier->name,
+			'all' => $carrier,
+		];
 
-        $order_carrier = new OrderCarrier((int) $order->getIdOrderCarrier());
+		$order_carrier = new OrderCarrier((int) $order->getIdOrderCarrier());
 
 		// $order_id = $order_carrier->id_order;
 
-        // getting delivery point from inpost module
-        if (Module::isInstalled('inpostshipping') && Module::isEnabled('inpostshipping')) {
-            $module = Module::getInstanceByName('inpostshipping');
-            try {
-                $context = $module->getContext();
-                $customerChoiceDataProvider = $module->getService('inpost.shipping.data_provider.customer_choice');
-                $deliveryPoint = $customerChoiceDataProvider->getDataByCartId($order->id_cart)->point;
-            } catch (Exception $e) {
-                echo 'Service does not exist: ', $e->getMessage(), "\n";
-            }
-        }
+		// getting delivery point from inpost module
 
-        $order_number = $order->getUniqReference();
-        $order_payments = OrderPayment::getByOrderReference($order->reference);
-        Media::addJsDef(
-            [
-                'customer_data' => $customer_info,
-                'customer' => $customer,
-                'delivery_address' => $deliveryAddress,
-                'billing_address' => $billingAddress,
-                'delivery_State' => $deliveryState,
-                'billing_State' => $billingState,
-                'billing_country' => $billingCountry,
-                'delivery_country' => $deliveryCountry,
-                'carrier' => $delivery_method,
-                'order_carrier' => $order_carrier,
-                'params' => $params,
-                'totalPaid' => $order->total_paid,
-                'currency' => $currencyISO,
-                'language_code' => $language_code,
-                'language_name' => $language_name,
-                'orderProducts' => $order->getProducts(),
+
+		if (Module::isInstalled('inpostshipping') && Module::isEnabled('inpostshipping')) {
+			$module = Module::getInstanceByName('inpostshipping');
+			try {
+				$context = $module->getContext();
+				$customerChoiceDataProvider = $module->getService('inpost.shipping.data_provider.customer_choice');
+				$deliveryPoint = $customerChoiceDataProvider->getDataByCartId($order->id_cart)->point;
+			} catch (Exception $e) {
+				echo 'Service does not exist: ', $e->getMessage(), "\n";
+			}
+		}
+
+
+		$order_number = $order->getUniqReference();
+		$order_payments = OrderPayment::getByOrderReference($order->reference);
+		Media::addJsDef(
+			[
+				'customer_data' => $customer_info,
+				'customer' => $customer,
+				'delivery_address' => $deliveryAddress,
+				'billing_address' => $billingAddress,
+				'delivery_State' => $deliveryState,
+				'billing_State' => $billingState,
+				'billing_country' => $billingCountry,
+				'delivery_country' => $deliveryCountry,
+				'carrier' => $delivery_method,
+				'order_carrier' => $order_carrier,
+				'params' => $params,
+				'totalPaid' => $order->total_paid,
+				'currency' => $currencyISO,
+				'language_code' => $language_code,
+				'language_name' => $language_name,
+				'orderProducts' => $order->getProducts(),
 				'deliveryPoint' => $deliveryPoint ?? null,
-                'shopName' => $shopName,
+				'shopName' => $shopName,
 				'order_number' => $order_number,
 				'order' => $order,
 				'order_payments' => $order_payments,
-            ]
-        );
+			]
+		);
 
-        $this->context->controller->registerJavascript(
-            'simplyin',
-            // Unique id
-            'modules/' . $this->name . '/views/js/orderConfirmation.js',
-            // JS file location
-            ['position' => 'bottom', 'priority' => 150] // Position and priority
-        );
+		$this->context->controller->registerJavascript(
+			'simplyin',
+			// Unique id
+			'modules/' . $this->name . '/views/js/orderConfirmation.js',
+			// JS file location
+			['position' => 'bottom', 'priority' => 150] // Position and priority
+		);
 
-    }
+		$this->context->controller->addJS($this->_path . '/views/js/orderConfirmation.js');
 
-    public function uninstall()
-    {
-        Configuration::deleteByName('SIMPLYIN_LIVE_MODE');
 
-        include dirname(__FILE__) . '/sql/uninstall.php';
+	}
 
-        return parent::uninstall();
-    }
+	public function uninstall()
+	{
+		Configuration::deleteByName('SIMPLYIN_LIVE_MODE');
 
-    /**
-     * Load the configuration form
-     */
-    public function getContent()
-    {
-        /*
-         * If values have been submitted in the form, process.
-         */
-        if (((bool) Tools::isSubmit('submitSimplyinModule')) == true) {
-            $this->postProcess();
-        }
+		include dirname(__FILE__) . '/sql/uninstall.php';
+
+		return parent::uninstall();
+	}
+
+	/**
+	 * Load the configuration form
+	 */
+	public function getContent()
+	{
+		/*
+		 * If values have been submitted in the form, process.
+		 */
+		if (((bool) Tools::isSubmit('submitSimplyinModule')) == true) {
+			$this->postProcess();
+		}
 		$this->context->smarty->assign('simply_save_checkbox', Configuration::get('SIMPLY_SAVE_CHECKBOX'));
 
-        $this->context->smarty->assign('module_dir', $this->_path);
+		$this->context->smarty->assign('module_dir', $this->_path);
 
-        $output = $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+		$output = $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
 
-        return $output . $this->renderForm();
-    }
+		return $output . $this->renderForm();
+	}
 
-    /**
-     * Create the form that will be displayed in the configuration of your module.
-     */
-    protected function renderForm()
-    {
-        $helper = new HelperForm();
+	/**
+	 * Create the form that will be displayed in the configuration of your module.
+	 */
+	protected function renderForm()
+	{
+		$helper = new HelperForm();
 
-        $helper->show_toolbar = false;
-        $helper->table = $this->table;
-        $helper->module = $this;
-        $helper->default_form_language = $this->context->language->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
+		$helper->show_toolbar = false;
+		$helper->table = $this->table;
+		$helper->module = $this;
+		$helper->default_form_language = $this->context->language->id;
+		$helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
 
-        $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submitSimplyinModule';
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
+		$helper->identifier = $this->identifier;
+		$helper->submit_action = 'submitSimplyinModule';
+		$helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+			. '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
+		$helper->token = Tools::getAdminTokenLite('AdminModules');
 
-        $helper->tpl_vars = [
-            'fields_value' => $this->getConfigFormValues(),
-            /* Add values for your inputs */
-            'languages' => $this->context->controller->getLanguages(),
-            'id_language' => $this->context->language->id,
-        ];
+		$helper->tpl_vars = [
+			'fields_value' => $this->getConfigFormValues(),
+			/* Add values for your inputs */
+			'languages' => $this->context->controller->getLanguages(),
+			'id_language' => $this->context->language->id,
+		];
 
-        return $helper->generateForm([$this->getConfigForm()]);
-    }
+		return $helper->generateForm([$this->getConfigForm()]);
+	}
 
-    /**
-     * Create the structure of your form.
-     */
-    protected function getConfigForm()
-    {
-        $this->context->smarty->assign('localPath', _PS_BASE_URL_ . $this->_path);
+	/**
+	 * Create the structure of your form.
+	 */
+	protected function getConfigForm()
+	{
+		$this->context->smarty->assign('localPath', _PS_BASE_URL_ . $this->_path);
 
-        return [
-            'form' => [
-                'legend' => [
-                    'title' => $this->l('Settings'),
-                    'icon' => 'icon-cogs',
-                ],
-                'input' => [
-                    [
-                        'type' => 'html',
-                        'name' => 'SIMPLYIN_IMAGE_DISPLAY',
-                        'html_content' => '<style>
+		return [
+			'form' => [
+				'legend' => [
+					'title' => $this->l('Settings'),
+					'icon' => 'icon-cogs',
+				],
+				'input' => [
+					[
+						'type' => 'html',
+						'name' => 'SIMPLYIN_IMAGE_DISPLAY',
+						'html_content' => '<style>
 						#SIMPLYIN_SECRET_KEY{
 							// border: 2px solid red;
 						}
@@ -442,11 +453,11 @@ class Simplyin extends Module
 						</style>
 						
 						',
-                    ],
-                    [
-                        'type' => 'html',
-                        'name' => 'SIMPLYIN_IMAGE_DISPLAY',
-                        'html_content' => '
+					],
+					[
+						'type' => 'html',
+						'name' => 'SIMPLYIN_IMAGE_DISPLAY',
+						'html_content' => '
 						<a href="https://www.simply.in" target="_blank">
 						<svg width="155" height="24" viewBox="0 0 155 24" fill="none" xmlns="http://www.w3.org/2000/svg"  {...props}>
 						
@@ -468,22 +479,22 @@ class Simplyin extends Module
 						</defs>
 					</svg>
 					</a>',
-                    ],
-                    [
-                        'type' => 'html',
-                        'name' => 'SIMPLYIN_TITLE',
-                        'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_title.tpl'),
-                    ],
-                    [
-                        'type' => 'password',
-                        'name' => 'SIMPLYIN_SECRET_KEY',
-                        'style' => 'border: 2px solid blue;',
-                    ],
-                    [
-                        'type' => 'html',
-                        'name' => 'SIMPLYIN_TITLE',
-                        'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_contact.tpl'),
-                    ],
+					],
+					[
+						'type' => 'html',
+						'name' => 'SIMPLYIN_TITLE',
+						'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_title.tpl'),
+					],
+					[
+						'type' => 'password',
+						'name' => 'SIMPLYIN_SECRET_KEY',
+						'style' => 'border: 2px solid blue;',
+					],
+					[
+						'type' => 'html',
+						'name' => 'SIMPLYIN_TITLE',
+						'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_contact.tpl'),
+					],
 					[
 						'type' => 'switch',
 						'id' => "simply-switch",
@@ -503,42 +514,42 @@ class Simplyin extends Module
 							]
 						]
 					],
-                    [
-                        'type' => 'html',
-                        'name' => 'SIMPLYIN_TITLE',
-                        'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_showhide.tpl'),
-                    ],
-                ],
+					[
+						'type' => 'html',
+						'name' => 'SIMPLYIN_TITLE',
+						'html_content' => $this->context->smarty->fetch($this->local_path . 'views/templates/admin/simplyin_showhide.tpl'),
+					],
+				],
 
-                'submit' => [
-                                        'title' => 'Save',
-                ],
-            ],
-        ];
-    }
+				'submit' => [
+					'title' => 'Save',
+				],
+			],
+		];
+	}
 
-    /**
-     * Set values for the inputs.
-     */
-    protected function getConfigFormValues()
-    {
-        return [
-            'SIMPLYIN_LIVE_MODE' => Configuration::get('SIMPLYIN_LIVE_MODE', true),
-            'SIMPLYIN_ACCOUNT_EMAIL' => Configuration::get('SIMPLYIN_ACCOUNT_EMAIL', 'contact@prestashop.com'),
-            'SIMPLYIN_ACCOUNT_PASSWORD' => Configuration::get('SIMPLYIN_ACCOUNT_PASSWORD', null),
-            'SIMPLYIN_SECRET_KEY' => Configuration::get('SIMPLYIN_SECRET_KEY'),
-            'INPOST_SECRET_KEY' => Configuration::get('INPOST_SECRET_KEY'),
+	/**
+	 * Set values for the inputs.
+	 */
+	protected function getConfigFormValues()
+	{
+		return [
+			'SIMPLYIN_LIVE_MODE' => Configuration::get('SIMPLYIN_LIVE_MODE', true),
+			'SIMPLYIN_ACCOUNT_EMAIL' => Configuration::get('SIMPLYIN_ACCOUNT_EMAIL', 'contact@prestashop.com'),
+			'SIMPLYIN_ACCOUNT_PASSWORD' => Configuration::get('SIMPLYIN_ACCOUNT_PASSWORD', null),
+			'SIMPLYIN_SECRET_KEY' => Configuration::get('SIMPLYIN_SECRET_KEY'),
+			'INPOST_SECRET_KEY' => Configuration::get('INPOST_SECRET_KEY'),
 			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX'),
 			'SIMPLYIN_TITLE' => Configuration::get('SIMPLYIN_TITLE'),
-        ];
-    }
+		];
+	}
 
-    /**
-     * Save form data.
-     */
-    protected function postProcess()
-    {
-        $form_values = $this->getConfigFormValues();
+	/**
+	 * Save form data.
+	 */
+	protected function postProcess()
+	{
+		$form_values = $this->getConfigFormValues();
 
 		foreach (array_keys($form_values) as $key) {
 			$value = Tools::getValue($key);
@@ -548,63 +559,63 @@ class Simplyin extends Module
 			}
 			Configuration::updateValue($key, $value);
 		}
-    }
+	}
 
-    /**
-     * Add the CSS & JavaScript files you want to be loaded in the BO.
-     */
-    public function hookDisplayBackOfficeHeader()
-    {
-        if (Tools::getValue('configure') == $this->name) {
-            // $this->context->controller->addJS($this->_path . 'views/js/back.js');
-            $this->context->controller->addCSS($this->_path . 'views/css/back.css');
-        }
-    }
+	/**
+	 * Add the CSS & JavaScript files you want to be loaded in the BO.
+	 */
+	public function hookDisplayBackOfficeHeader()
+	{
+		if (Tools::getValue('configure') == $this->name) {
+			// $this->context->controller->addJS($this->_path . 'views/js/back.js');
+			$this->context->controller->addCSS($this->_path . 'views/css/back.css');
+		}
+	}
 
-    public function fetchAllAvailableShippingMethods()
-    {
-        $carriers = Carrier::getCarriers(
-            $this->context->language->id,
-            true,
-            false,
-            false,
-            null,
-            Carrier::ALL_CARRIERS
-        );
+	public function fetchAllAvailableShippingMethods()
+	{
+		$carriers = Carrier::getCarriers(
+			$this->context->language->id,
+			true,
+			false,
+			false,
+			null,
+			Carrier::ALL_CARRIERS
+		);
 
-        return $carriers;
-    }
+		return $carriers;
+	}
 
-    public function hookHeader($params)
-    {
-        $base_url = __PS_BASE_URI__;
-        $shippingMethods = $this->fetchAllAvailableShippingMethods();
-        $countries_list = Country::getCountries($this->context->language->id);
+	public function hookHeader($params)
+	{
+		$base_url = __PS_BASE_URI__;
+		$shippingMethods = $this->fetchAllAvailableShippingMethods();
+		$countries_list = Country::getCountries($this->context->language->id);
 
-        $context = Context::getContext();
+		$context = Context::getContext();
 
-        // Get the current language object
-        $currentLanguage = $context->language;
-        $customer = $context->customer;
+		// Get the current language object
+		$currentLanguage = $context->language;
+		$customer = $context->customer;
 
-        $prestashop_version = Configuration::get('PS_VERSION_DB');
+		$prestashop_version = Configuration::get('PS_VERSION_DB');
 
-        Media::addJsDef([
-            'extension_version' => $this->version,
-            'prestashop_version' => $prestashop_version,
-            'countries_list' => $countries_list,
-            'shippingMethods' => $shippingMethods,
-            'base_url' => $base_url,
-            'files_url' => $this->_path,
-            'inpost_api_key' => Configuration::get('INPOST_SECRET_KEY'),
-            'shop_url' => $base_url,
-            'full_shop_url' => Tools::getShopDomain() . $base_url,
-            'currentLanguage' => $currentLanguage,
-            'customer' => $customer,
+		Media::addJsDef([
+			'extension_version' => $this->version,
+			'prestashop_version' => $prestashop_version,
+			'countries_list' => $countries_list,
+			'shippingMethods' => $shippingMethods,
+			'base_url' => $base_url,
+			'files_url' => $this->_path,
+			'inpost_api_key' => Configuration::get('INPOST_SECRET_KEY'),
+			'shop_url' => $base_url,
+			'full_shop_url' => Tools::getShopDomain() . $base_url,
+			'currentLanguage' => $currentLanguage,
+			'customer' => $customer,
 			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX')
-        ]);
+		]);
 
-        $this->context->controller->addJS($this->_path . '/views/js/react-app/dist/bundle.js');
-        $this->context->controller->addCSS($this->_path . '/views/css/front.css');
-    }
+		$this->context->controller->addJS($this->_path . '/views/js/react-app/dist/bundle.js');
+		$this->context->controller->addCSS($this->_path . '/views/css/front.css');
+	}
 }

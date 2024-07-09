@@ -1,11 +1,11 @@
 {
 	"translation": {
 		"taxID": "Tax ID",
-		"emailPlaceholder": "Insert your email. 🤠🙈💥",
-		"headerTitle": "Quick and safe with",
+		"emailPlaceholder": "Insert your email",
+		"headerTitle": "Ocean-click shopping",
 		"payment": {
 			"paymentTitle-1": "New!",
-			"paymentTitle-2": "Save your details with Simply.IN to quickly and safely purchase products here and at other stores",
+			"paymentTitle-2": "Save your details so that next time you can buy with one click in this and other stores.",
 			"createAccountDescription-1": "Next time you make a payment here or at other stores using",
 			"createAccountDescription-2": ", you will receive a code by SMS and can safely shop using",
 			"createAccountDescription-3": "By clicking the \"Order\" button or analogous button, I confirm that I have read and accept",
@@ -50,15 +50,15 @@
 			"shippingData": "Shipping data",
 			"addNewShippingData": "Add new shipping data",
 			"doorDelivery": "Door Delivery",
-			"parcelDelivery": "Delivery to a parcel machine or PUDO",
-			"addNewParcelData": "Add new APM or PUDO",
+			"parcelDelivery": "Delivery to a parcel machine or pick-up point",
+			"addNewParcelData": "Add new APM or pick-up point",
 			"sameData": "Billing data is the same as delivery data",
 			"notSelectedDeliveryPoint": "The pick-up point has not been selected",
 			"delivery": "Delivery",
 			"point": "Point",
-			"pudo": "PUDO",
+			"pudo": "Pick-up point",
 			"parcelMachines": "APM",
-			"PudoAndParcelMachines": "Select a parcel machine or PUDO"
+			"PudoAndParcelMachines": "Select a parcel machine or pick-up point"
 		},
 		"modal-step-rejected": {
 			"loginRejected": "Login rejected"
@@ -89,9 +89,9 @@
 			"shippingPointError": "Selected shipping point is invalid",
 			"billingData": "Billing data",
 			"shippingData": "Shipiing data",
-			"parcelData": "Find PUDO or APM",
+			"parcelData": "Find pick-up point or APM",
 			"pickupPointName": "Save as",
-			"selectedPickUpPoint": "Selected PUDO or APM",
+			"selectedPickUpPoint": "Selected pick-up point or APM",
 			"number": "Number",
 			"address": "Address",
 			"additionalInfo": "Additional information",
