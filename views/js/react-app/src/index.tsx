@@ -14,8 +14,8 @@ import './i18n.ts'
 
 
 const isCheckoutPage = document.getElementById('checkout')
-
-if (!isCheckoutPage) {
+const isOrderConfirmation = document.getElementById('order-confirmation')
+if (!isCheckoutPage && !isOrderConfirmation) {
 	saveDataSessionStorage({ key: "isSimplyDataSelected", data: false })
 	removeDataSessionStorage({ key: "UserData" })
 	removeDataSessionStorage({ key: "BillingIndex" })
@@ -24,7 +24,8 @@ if (!isCheckoutPage) {
 	removeDataSessionStorage({ key: "simplyinToken" })
 	removeDataSessionStorage({ key: "phoneNumber" })
 	removeDataSessionStorage({ key: "selectedShippingMethod" })
-
+	removeDataSessionStorage({ key: "SelectedTab" })
+	removeDataSessionStorage({ key: "createSimplyAccount" })
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
