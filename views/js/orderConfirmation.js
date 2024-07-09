@@ -23,78 +23,71 @@
 
 
 
-console.log("thank you page");
-
 $(document).ready(async function () {
+  const middlewareApiTwo = async ({ endpoint, method, requestBody, token }) => {
+    const baseUrl = base_url || ".";
 
+    const url = `${baseUrl}./modules/simplyin/api/submitData.php`;
+    const headers = {
+      "Content-Type": "application/json",
+    };
 
-	const middlewareApiTwo = async ({ endpoint, method, requestBody, token }) => {
-		const baseUrl = base_url || ".";
-	
-		const url = `${baseUrl}./modules/simplyin/api/submitData.php`;
-		const headers = {
-		  "Content-Type": "application/json",
-		};
-	
-		const body = JSON.stringify({
-		  endpoint,
-		  method,
-		  requestBody,
-		  ...(token ? { token } : {}),
-		});
-	
-		try {
-		  const response = await fetch(url, {
-			method: "POST",
-			headers,
-			body,
-		  });
-	
-		  if (!response.ok) {
-			throw new Error(`HTTP error! Status: ${response.status}`);
-		  }
-	
-		  const responseData = await response.json();
-		  return responseData;
-		} catch (error) {
-		  console.error(error);
-		}
-	  };
-	
-	
-	//   const isUserLoggedIn2 =
-	// 	customer?.logged === true && customer?.is_guest !== "1";
+    const body = JSON.stringify({
+      endpoint,
+      method,
+      requestBody,
+      ...(token ? { token } : {}),
+    });
 
-	  const userEmail2 = (customer?.logged === true && customer?.is_guest !== "1") ? customer?.email : "";
-	
-	
-	
-	  const loadDataFromSessionStorageTwo = ({ key }) => {
-		try {
-		  const serializedData = sessionStorage.getItem(key);
-		  if (serializedData === null) {
-			return undefined;
-		  }
-		  return JSON.parse(serializedData);
-		} catch (error) {
-		  console.error("Error loading data", error);
-		  return undefined;
-		}
-	  };
-	
-	  let extensionVersion = extension_version || "";
-	
-	  let prestashopVersion = prestashop_version || "";
-	
-	
-	  let getLangBrowser = () => {
-		if (navigator.languages !== undefined) return navigator.languages[0];
-		else return navigator.language;
-	  };
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+      });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  console.log("script start");
+  //   const isUserLoggedIn2 =
+  // 	customer?.logged === true && customer?.is_guest !== "1";
+
+  const userEmail2 =
+    customer?.logged === true && customer?.is_guest !== "1"
+      ? customer?.email
+      : "";
+
+  const loadDataFromSessionStorageTwo = ({ key }) => {
+    try {
+      const serializedData = sessionStorage.getItem(key);
+
+      if (serializedData === null) {
+        return undefined;
+      }
+
+      return JSON.parse(serializedData);
+    } catch (error) {
+      console.error("Error loading data", error);
+      return undefined;
+    }
+  };
+
+  let extensionVersion = extension_version || "";
+
+  let prestashopVersion = prestashop_version || "";
+
+  let getLangBrowser = () => {
+    if (navigator.languages !== undefined) return navigator.languages[0];
+    else return navigator.language;
+  };
 
   let shortLang = (lang) => lang.substring(0, 2).toUpperCase();
 
@@ -107,6 +100,8 @@ $(document).ready(async function () {
   const UserData = loadDataFromSessionStorageTwo({
     key: "UserData",
   });
+
+  const phoneNumber = loadDataFromSessionStorageTwo({ key: "phoneNumber" });
 
   const billingAddresses = {
     _id: UserData?.billingAddresses[BillingIndex]?._id,
@@ -155,13 +150,9 @@ $(document).ready(async function () {
     key: "createSimplyAccount",
   });
 
-  const phoneNumber = loadDataFromSessionStorageTwo({ key: "phoneNumber" });
   const simplyinToken = sessionStorage.getItem("simplyinToken");
 
-console.log('createAccount',createAccount);
-
   if (createAccount && !simplyinToken) {
-	console.log('new account')
     const newAccountSendData = {
       newAccountData: {
         name: (delivery_address.firstname || "").trim(),
@@ -190,12 +181,15 @@ console.log('createAccount',createAccount);
       endpoint: "checkout/createOrderAndAccount",
       method: "POST",
       requestBody: newAccountSendData,
-    }).then((res) => {});
+    }).then((res) => {
+      sessionStorage.removeItem("phoneNumber");
+      sessionStorage.removeItem("isSimplyDataSelected");
+      sessionStorage.removeItem("createSimplyAccount");
+      sessionStorage.removeItem("CustomChanges");
+    });
   }
 
   if (simplyinToken) {
-
-	console.log("update data")
     const existingAccountSendData = {
       newOrderData: {
         shopOrderNumber: order_number || "",
@@ -226,11 +220,12 @@ console.log('createAccount',createAccount);
       sessionStorage.removeItem("phoneNumber");
       sessionStorage.removeItem("simplyinToken");
       sessionStorage.removeItem("selectedShippingMethod");
-      sessionStorage.removeItem("CustomChanges");
+      sessionStorage.removeItem("customChanges");
       sessionStorage.removeItem("inpost-delivery-point");
       sessionStorage.removeItem("isBillingSelected");
       sessionStorage.removeItem("isDeliverySelected");
+      sessionStorage.removeItem("SelectedTab");
+      sessionStorage.removeItem("createSimplyAccount");
     });
   }
-  console.log('script finished');
 });

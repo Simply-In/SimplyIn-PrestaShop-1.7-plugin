@@ -70,6 +70,16 @@ jobs:
         cd views/js/react-app
         rm -rf src
         rm -rf node_modules
+    
+    - name: Create simplyin directory and move files
+      run: |
+        mkdir simplyin
+        mv $(ls -A | grep -v simplyin) simplyin/
+
+    - name: Zip the simplyin directory
+      run: |
+        zip -r simplyin-stage-presta.zip simplyin
+
 
     - name: Upload files
       uses: actions/upload-artifact@v2
@@ -77,30 +87,9 @@ jobs:
         name: simplyin-presta17-stage
         path: .
 
-  create-zip-file:
-    runs-on: ubuntu-latest
-    needs: [build-app]
-
-    steps:
-    - name: Download files
-      uses: actions/download-artifact@v2
-      with:
-        name: simplyin-presta17-stage
-        path: .
-    
-    - name: Zip files excluding the ZIP file itself
-      run: |
-        # Exclude the ZIP file from being included in the ZIP itself
-        zip -r simplyin-presta17-stage.zip . 
-    - name: Upload zip file
-      uses: actions/upload-artifact@v2
-      with:
-        name: simplyin-presta17-stage
-        path: simplyin-presta17-stage.zip
-
   deploy-zip-file-in-azure:
     runs-on: ubuntu-latest
-    needs: [create-zip-file]
+    needs: [build-app]
 
     steps:
     - name: Download zip file
