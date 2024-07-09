@@ -34,7 +34,7 @@ jobs:
       run: |
         VERSION=$(jq -r '.version' package.json)
         sed '0,/$this->version/{s/$this->version.*/$this->version = "'$VERSION'";/}' simplyin.php > temp && mv temp simplyin.php
-        sed -i 's|$this->description =.*|$this->description = "simplyin module - quick checkout process ${{ env.APP_VERSION_PREFIX_PROD }}";|g' simplyin.php
+        sed -i 's|$this->description =.*|$this->description = "simplyin module - quick checkout process";|g' simplyin.php
         sed -i "5s|<version><!\[CDATA\[.*\]\]></version>|<version><![CDATA[$VERSION]]></version>|" config.xml
         sed -i "6s|<description><!\[CDATA\[simplyin module - quick checkout process.*\]\]></description>|<description><![CDATA[simplyin module - quick checkout process]]></description>|" config.xml
 
