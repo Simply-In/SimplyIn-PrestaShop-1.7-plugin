@@ -57,9 +57,6 @@ $(document).ready(async function () {
     }
   };
 
-  //   const isUserLoggedIn2 =
-  // 	customer?.logged === true && customer?.is_guest !== "1";
-
   const userEmail2 =
     customer?.logged === true && customer?.is_guest !== "1"
       ? customer?.email
@@ -155,6 +152,8 @@ $(document).ready(async function () {
   if (createAccount && !simplyinToken) {
     const newAccountSendData = {
       newAccountData: {
+        payment_method: order?.module || "",
+        payment_method_title: order?.payment || "",
         name: (delivery_address.firstname || "").trim(),
         surname: (delivery_address.lastname || "").trim(),
         phoneNumber: (phoneNumber || "").trim(),
@@ -192,6 +191,8 @@ $(document).ready(async function () {
   if (simplyinToken) {
     const existingAccountSendData = {
       newOrderData: {
+        payment_method: order?.module || "",
+        payment_method_title: order?.payment || "",
         shopOrderNumber: order_number || "",
         price: Number(totalPaid),
         currency: currency,
