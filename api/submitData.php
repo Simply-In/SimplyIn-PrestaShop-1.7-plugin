@@ -58,8 +58,8 @@ if (!empty($token)) {
 } else {
 	$url = $backend_url . $endpoint;
 }
-// $headers = ['Content-Type: application/json'];
-$headers = ['Content-Type: application/json', 'Origin: ' . $origin];
+$headers = ['Content-Type: application/json'];
+// $headers = ['Content-Type: application/json', 'Origin: ' . $origin];
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);

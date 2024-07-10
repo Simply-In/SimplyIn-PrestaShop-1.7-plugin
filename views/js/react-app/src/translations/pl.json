@@ -56,7 +56,7 @@
 			"notSelectedDeliveryPoint": "Punkt odbioru nie został wybrany",
 			"delivery": "Dostawa",
 			"point": "Punkt",
-			"pudo": "Punkt odbioru",
+			"pudo": "Punkty odbioru",
 			"parcelMachines": "Paczkomaszyny",
 			"PudoAndParcelMachines": "Wybierz paczkomaszynę lub punktu odbioru"
 		},
@@ -86,7 +86,7 @@
 			"cityError": "Miasto jest wymagane",
 			"countryError": "Kraj jest wymagany",
 			"countryNotFound": "Element nie został znaleziony",
-			"shippingPointError": "Wybranu punkt odbioru jest niepoprawny",
+			"shippingPointError": "Wybrany punkt odbioru jest niepoprawny",
 			"billingData": "Dane rozliczeniowe",
 			"shippingData": "Dane dostawy",
 			"parcelData": "Znajdź punktu odbioru lub paczkomaszynę",
