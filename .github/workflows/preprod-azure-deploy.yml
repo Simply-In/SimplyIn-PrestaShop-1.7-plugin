@@ -91,7 +91,7 @@ jobs:
 
     - name: Create .htaccess file in simplyin directory
       run: |
-        echo 'RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteRule ^(.*)$ index.php [QSA,L]' > simplyin/.htaccess
+        touch simplyin/.htaccess
 
     - name: Zip the simplyin directory
       run: |
