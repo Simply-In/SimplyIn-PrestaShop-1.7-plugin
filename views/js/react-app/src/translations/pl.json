@@ -51,14 +51,14 @@
 			"addNewShippingData": "Dodaj nowe dane dostawy",
 			"doorDelivery": "Dostawa pod drzwi",
 			"parcelDelivery": "Dostawa do paczkomaszyny lub punktu odbioru",
-			"addNewParcelData": "Dodaj paczkomaszynę lub punktu odbioru",
+			"addNewParcelData": "Dodaj paczkomaszynę lub punkt odbioru",
 			"sameData": "Dane rozliczeniowe są takie same jak dane dostawy",
 			"notSelectedDeliveryPoint": "Punkt odbioru nie został wybrany",
 			"delivery": "Dostawa",
 			"point": "Punkt",
 			"pudo": "Punkty odbioru",
 			"parcelMachines": "Paczkomaszyny",
-			"PudoAndParcelMachines": "Wybierz paczkomaszynę lub punktu odbioru"
+			"PudoAndParcelMachines": "Wybierz paczkomaszynę lub punkt odbioru"
 		},
 		"modal-step-rejected": {
 			"loginRejected": "Logowanie odrzucone"
@@ -89,7 +89,7 @@
 			"shippingPointError": "Wybrany punkt odbioru jest niepoprawny",
 			"billingData": "Dane rozliczeniowe",
 			"shippingData": "Dane dostawy",
-			"parcelData": "Znajdź punktu odbioru lub paczkomaszynę",
+			"parcelData": "Znajdź punkt odbioru lub paczkomaszynę",
 			"pickupPointName": "Zapisz jako",
 			"selectedPickUpPoint": "Wybrany punkt odbioru lub paczkomaszyna",
 			"number": "Numer",
