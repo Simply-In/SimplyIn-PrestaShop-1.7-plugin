@@ -32,7 +32,7 @@ class Simplyin extends Module
     {
         $this->name = 'simplyin';
         $this->tab = 'shipping_logistics';
-        $this->version = "1.0.9";
+        $this->version = "1.0.11";
         $this->author = 'SimplyIN';
 		$this->need_instance = 1;
 		$this->bootstrap = true;
@@ -615,7 +615,7 @@ class Simplyin extends Module
 			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX')
 		]);
 
-		$this->context->controller->addJS($this->_path . '/views/js/react-app/dist/bundle.js');
-		$this->context->controller->addCSS($this->_path . '/views/css/front.css');
+		$this->context->controller->addJS($this->_path . 'views/js/react-app/dist/bundle.js');
+		$this->context->controller->addCSS($this->_path . 'views/css/front.css');
 	}
 }
