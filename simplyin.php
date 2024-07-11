@@ -615,7 +615,7 @@ class Simplyin extends Module
 			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX')
 		]);
 
-		$this->context->controller->addJS($this->_path . '/views/js/react-app/dist/bundle.js');
-		$this->context->controller->addCSS($this->_path . '/views/css/front.css');
+		$this->context->controller->addJS($this->_path . 'views/js/react-app/dist/bundle.js');
+		$this->context->controller->addCSS($this->_path . 'views/css/front.css');
 	}
 }
