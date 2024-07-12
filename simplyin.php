@@ -115,6 +115,8 @@ class Simplyin extends Module
 	public function hookActionOrderStatusPostUpdate($params)
 	{
 		$newOrderStatus = $params['newOrderStatus']->template;
+		// PrestaShopLogger::addLog(json_encode($newOrderStatus), 1, null, 'Order', 10, true);
+
 		$stopStatuses = [
 			'order_canceled',
 			'payment_error',
@@ -162,7 +164,8 @@ class Simplyin extends Module
 
 		$plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
 
-		$key = getSecretKey($order_email);
+		$key = $this->getSecretKey($order_email);
+		// PrestaShopLogger::addLog(json_encode($body_data), 1, null, 'Order', 10, true);
 
 		$encryptedData = $this->encrypt($plaintext, $key);
 
