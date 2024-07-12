@@ -162,7 +162,7 @@ class Simplyin extends Module
 
 		$plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
 
-		$key = getSecretKey($order_email);
+		$key = $this->getSecretKey($order_email);
 
 		$encryptedData = $this->encrypt($plaintext, $key);
 
