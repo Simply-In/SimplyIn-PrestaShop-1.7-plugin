@@ -39,7 +39,7 @@ class Simplyin extends Module
 		parent::__construct();
 
         $this->displayName = 'SimplyIN';
-		$this->description = "simplyin module - quick checkout process st";
+		$this->description = "simplyin module - quick checkout process pp";
         $this->confirmUninstall = $this->l('');
 		$this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
 	}
@@ -81,7 +81,7 @@ class Simplyin extends Module
 
 	public function send_encrypted_data($encrypted_data)
 	{
-		$backend_url = "https://stage.backend.simplyin.app/api/";
+		$backend_url = "https://preprod.backend.simplyin.app/api/";
 		$url = $backend_url . 'encryption/saveEncryptedOrderStatusChange';
 		$base_url = __PS_BASE_URI__;
 		// $headers = ['Content-Type: application/json'];
@@ -143,7 +143,14 @@ class Simplyin extends Module
 		$tracking_numbers = [];
 
 		foreach ($shipping_data as $carrier) {
-			$tracking_numbers[] = $carrier['tracking_number'];
+			$carrierName = $carrier["carrier_name"];
+
+			$carrierSlug = Tools::str2url($carrierName);
+			$tracking_numbers[] = array(
+				"number" => $carrier['tracking_number'],
+				"provider" => $carrierSlug
+			);
+
 		}
 
 		$customer = $order->getCustomer();
@@ -159,7 +166,7 @@ class Simplyin extends Module
 			'shopOrderNumber' => $order_reference,
 			'newOrderStatus' => $newOrderStatus,
 			'apiKey' => $apiKey,
-			'trackingNumbers' => $tracking_numbers,
+			'trackings' => $tracking_numbers,
 		];
 
 		$plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
