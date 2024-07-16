@@ -231,12 +231,12 @@ export const PhoneField = () => {
 					</PhoneInputDescription>
 					<PhoneInputDescriptionSecondary>
 						{t('payment.createAccountDescription-3')}
-						<PhoneInputDescriptionLink href="https://simply.in/terms-and-conditions" target="_blank">{" "}	{t('payment.createAccountDescription-4')}
+						<PhoneInputDescriptionLink href="https://simply.in/terms-b2c" target="_blank">{" "}	{t('payment.createAccountDescription-4')}
 							{" "}Simply.In.{" "}</PhoneInputDescriptionLink >
 						{t('payment.createAccountDescription-5')}
 						<PhoneInputDescriptionLink href="https://simply.in/" target="_blank">{" "}Simply.In.</PhoneInputDescriptionLink>
 						{t('payment.createAccountDescription-6')}
-						<PhoneInputDescriptionLink href="https://simply.in/gdpr-rules" target="_blank">{" "}{t('payment.createAccountDescription-7')}</PhoneInputDescriptionLink>
+						<PhoneInputDescriptionLink href="https://simply.in/privacy-policy" target="_blank">{" "}{t('payment.createAccountDescription-7')}</PhoneInputDescriptionLink>
 					</PhoneInputDescriptionSecondary>
 
 
