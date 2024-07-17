@@ -32,7 +32,7 @@ class Simplyin extends Module
     {
         $this->name = 'simplyin';
         $this->tab = 'shipping_logistics';
-        $this->version = "1.0.14";
+        $this->version = "1.0.17";
         $this->author = 'SimplyIN';
 		$this->need_instance = 1;
 		$this->bootstrap = true;
@@ -143,7 +143,14 @@ class Simplyin extends Module
 		$tracking_numbers = [];
 
 		foreach ($shipping_data as $carrier) {
-			$tracking_numbers[] = $carrier['tracking_number'];
+			$carrierName = $carrier["carrier_name"];
+
+			$carrierSlug = Tools::str2url($carrierName);
+			$tracking_numbers[] = array(
+				"number" => $carrier['tracking_number'],
+				"provider" => $carrierSlug
+			);
+
 		}
 
 		$customer = $order->getCustomer();
@@ -159,7 +166,7 @@ class Simplyin extends Module
 			'shopOrderNumber' => $order_reference,
 			'newOrderStatus' => $newOrderStatus,
 			'apiKey' => $apiKey,
-			'trackingNumbers' => $tracking_numbers,
+			'trackings' => $tracking_numbers,
 		];
 
 		$plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
