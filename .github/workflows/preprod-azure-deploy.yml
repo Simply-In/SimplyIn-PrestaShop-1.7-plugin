@@ -11,7 +11,8 @@ env:
   APP_VERSION_PREFIX_PREPROD: ${{vars.APP_VERSION_PREFIX_PREPROD}}
   AZURE_STORAGE_ACCOUNT_PROD: ${{vars.AZURE_STORAGE_ACCOUNT_PREPROD}} #container-name
   AZURE_STORAGE_CONTAINER_NAME_PRESTA: ${{vars.AZURE_STORAGE_CONTAINER_NAME_PRESTA}}
-  AZURE_CREDENTIALS: ${{secrets.AZURE_CREDENTIALS}}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
 jobs:
  
   build-app:
@@ -90,7 +91,7 @@ jobs:
 
     - name: Create .htaccess file in simplyin directory
       run: |
-        echo 'RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteRule ^(.*)$ index.php [QSA,L]' > simplyin/.htaccess
+        touch simplyin/.htaccess
 
     - name: Zip the simplyin directory
       run: |

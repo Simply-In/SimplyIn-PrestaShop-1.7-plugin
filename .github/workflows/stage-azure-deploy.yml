@@ -9,9 +9,10 @@ env:
   BACKEND_ENVIRONMENT_STAGE: ${{ vars.BACKEND_ENVIRONMENT_STAGE }}
   BACKEND_ENVIRONMENT_STAGE_URL: ${{ vars.BACKEND_ENVIRONMENT_STAGE_URL }}
   APP_VERSION_PREFIX_STAGE: ${{ vars.APP_VERSION_PREFIX_STAGE }}
-  AZURE_STORAGE_ACCOUNT_PROD: ${{ vars.AZURE_STORAGE_ACCOUNT_STAGE }}
+  AZURE_STORAGE_ACCOUNT_PROD: ${{ vars.AZURE_STORAGE_ACCOUNT_PROD }}
   AZURE_STORAGE_CONTAINER_NAME_PRESTA: ${{ vars.AZURE_STORAGE_CONTAINER_NAME_PRESTA }}
-  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+
 
 jobs:
   version:
@@ -95,7 +96,7 @@ jobs:
 
     - name: Create .htaccess file in simplyin directory
       run: |
-        echo 'RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteRule ^(.*)$ index.php [QSA,L]' > simplyin/.htaccess
+        touch simplyin/.htaccess
 
     - name: Zip the simplyin directory
       run: |

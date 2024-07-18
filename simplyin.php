@@ -32,7 +32,8 @@ class Simplyin extends Module
     {
         $this->name = 'simplyin';
         $this->tab = 'shipping_logistics';
-        $this->version = "1.0.3";
+        $this->version = "1.1.0";
+
         $this->author = 'SimplyIN';
 		$this->need_instance = 1;
 		$this->bootstrap = true;
@@ -115,6 +116,8 @@ class Simplyin extends Module
 	public function hookActionOrderStatusPostUpdate($params)
 	{
 		$newOrderStatus = $params['newOrderStatus']->template;
+		// PrestaShopLogger::addLog(json_encode($newOrderStatus), 1, null, 'Order', 10, true);
+
 		$stopStatuses = [
 			'order_canceled',
 			'payment_error',
@@ -141,7 +144,14 @@ class Simplyin extends Module
 		$tracking_numbers = [];
 
 		foreach ($shipping_data as $carrier) {
-			$tracking_numbers[] = $carrier['tracking_number'];
+			$carrierName = $carrier["carrier_name"];
+
+			$carrierSlug = Tools::str2url($carrierName);
+			$tracking_numbers[] = array(
+				"number" => $carrier['tracking_number'],
+				"provider" => $carrierSlug
+			);
+
 		}
 
 		$customer = $order->getCustomer();
@@ -157,12 +167,13 @@ class Simplyin extends Module
 			'shopOrderNumber' => $order_reference,
 			'newOrderStatus' => $newOrderStatus,
 			'apiKey' => $apiKey,
-			'trackingNumbers' => $tracking_numbers,
+			'trackings' => $tracking_numbers,
 		];
 
 		$plaintext = json_encode($body_data, JSON_UNESCAPED_SLASHES);
 
-		$key = getSecretKey($order_email);
+		$key = $this->getSecretKey($order_email);
+		// PrestaShopLogger::addLog(json_encode($body_data), 1, null, 'Order', 10, true);
 
 		$encryptedData = $this->encrypt($plaintext, $key);
 
@@ -615,7 +626,7 @@ class Simplyin extends Module
 			'SIMPLY_SAVE_CHECKBOX' => Configuration::get('SIMPLY_SAVE_CHECKBOX')
 		]);
 
-		$this->context->controller->addJS($this->_path . '/views/js/react-app/dist/bundle.js');
-		$this->context->controller->addCSS($this->_path . '/views/css/front.css');
+		$this->context->controller->addJS($this->_path . 'views/js/react-app/dist/bundle.js');
+		$this->context->controller->addCSS($this->_path . 'views/css/front.css');
 	}
 }

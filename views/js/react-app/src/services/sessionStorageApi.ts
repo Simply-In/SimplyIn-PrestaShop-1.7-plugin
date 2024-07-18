@@ -22,7 +22,8 @@ type ISessionStorageData = {
 	"isDeliverySelected" |
 	"isBillingSelected" |
 	"sameDeliveryAddress" |
-	"SelectedTab"
+	"SelectedTab" |
+	"orderConfirmationExecuted"
 	data: any
 } | {
 	key: "createSimplyAccount"

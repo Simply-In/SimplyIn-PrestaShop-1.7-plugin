@@ -28,6 +28,10 @@ if (!isCheckoutPage && !isOrderConfirmation) {
 	removeDataSessionStorage({ key: "createSimplyAccount" })
 }
 
+if (isCheckoutPage) {
+	removeDataSessionStorage({ key: "orderConfirmationExecuted" })
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 const listOfCountries = Object.keys(countries_list).map((key) => countries_list[key]).sort((a, b) => a.name.localeCompare(b.name));
