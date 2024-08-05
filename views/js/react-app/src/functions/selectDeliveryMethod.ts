@@ -33,149 +33,123 @@ const waitForElementToRender = ({ selector, timeout = 5000 }: data) => {
 
 
 export const selectDeliveryMethod = async ({ deliveryPointID, provider = "inpostshipping" }: IselectIPickupPointInpost) => {
+	if (deliveryPointID === undefined) return;
 
-	// const billingIndex = loadDataFromSessionStorage({ key: "BillingIndex" })
-	// const parcelIndex = loadDataFromSessionStorage({ key: "ParcelIndex" })
-	// const shippingIndex = loadDataFromSessionStorage({ key: "ShippingIndex" })
-
-	if (deliveryPointID === undefined) {
-		return
-
-	}
-
-	const isShippingMethodSelected = loadDataFromSessionStorage({ key: "selectedShippingMethod" })
-
-
-	if (isShippingMethodSelected) {
-		return
-	}
-
-	if (provider !== "default" && deliveryPointID === undefined) {
-
-		return
-	}
+	if (isShippingMethodAlreadySelected()) return;
 
 	if (provider === "default") {
-
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		//@ts-ignore
-		const shippingMethodsWOProviders = shippingMethods.filter((el) => el.external_module_name !== "inpostshipping")
-
-		const firstNotInpostShippingMethod = shippingMethodsWOProviders[0].id_carrier
-
-		waitForElementToRender({ selector: `#delivery_option_${firstNotInpostShippingMethod}` }).then((shippingRadioButton: any) => {
-			if (shippingRadioButton) {
-				shippingRadioButton.checked = true;
-				const event = new Event('change', { 'bubbles': true, 'cancelable': true });
-				shippingRadioButton.dispatchEvent(event);
-				saveDataSessionStorage({ key: 'selectedShippingMethod', data: true })
-
-				}
-			});
-
+		await handleDefaultProvider();
+	} else if (provider === "inpostshipping") {
+		if (deliveryPointID) {
+			await handleInpostProvider(deliveryPointID);
+		}
 	}
+};
 
-	if (deliveryPointID !== undefined && provider === "inpostshipping") {
+// Helper Functions
 
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		//@ts-ignore
-		const shippingMethod = shippingMethods.find((el) => el.external_module_name === "inpostshipping")
+const isShippingMethodAlreadySelected = () => {
+	return loadDataFromSessionStorage({ key: "selectedShippingMethod" });
+};
 
-		const shippingMethodId = shippingMethod?.id_carrier
+const handleDefaultProvider = async () => {
+	const shippingMethodId = getDefaultShippingMethodId();
+	if (shippingMethodId) {
+		await selectAndSaveShippingMethod(shippingMethodId);
+	}
+};
 
-
-		if (!deliveryPointID) return
-
-
-		if (!document.querySelector('#checkout-delivery-step')) {
-			return
+const handleInpostProvider = async (deliveryPointID: string) => {
+	const shippingMethodId = getInpostShippingMethodId();
+	if (shippingMethodId && isDeliveryStepAccessible()) {
+		const inpostPointData = await getInpostPointData({ deliveryPointID });
+		if (inpostPointData.name) {
+			await selectDeliveryPointWithRetry(shippingMethodId, deliveryPointID);
 		}
-		if (!document.querySelector('#checkout-payment-step')?.classList.contains("-unreachable")) {
-			return
-		}
+	}
+};
 
+const getDefaultShippingMethodId = () => {
+// Filter out inpostshipping and get the ID of the first available method
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+	const shippingMethodsWOProviders = shippingMethods.filter(el => el.external_module_name !== "inpostshipping");
+	return shippingMethodsWOProviders[0]?.id_carrier;
+};
 
-		if (document.querySelector('#checkout-delivery-step')?.classList.contains("-unreachable")) {
-			return
-		}
+const getInpostShippingMethodId = () => {
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+	const shippingMethod = shippingMethods.find(el => el.external_module_name === "inpostshipping");
+	return shippingMethod?.id_carrier;
+};
 
-		const inpostPointData = await getInpostPointData({ deliveryPointID: deliveryPointID })
-		if (!inpostPointData.name) {
+const isDeliveryStepAccessible = () => {
+	return document.querySelector('#checkout-delivery-step') &&
+		document.querySelector('#checkout-payment-step')?.classList.contains("-unreachable");
+};
 
-			return;
-		}
+const selectAndSaveShippingMethod = async (shippingMethodId: string) => {
+	await waitForElementAndCheck(`#delivery_option_${shippingMethodId}`);
+	saveDataSessionStorage({ key: 'selectedShippingMethod', data: true });
+};
 
+const waitForElementAndCheck = async (selector: string) => {
+	const element = await waitForElementToRender({ selector });
+	if (element) {
+		(element as HTMLInputElement).checked = true;
+		const event = new Event('change', { bubbles: true, cancelable: true });
+		(element as HTMLInputElement).dispatchEvent(event);
+	}
+};
 
-		let flag = false;
-
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		//@ts-ignore
-		const selectDeliveryPoint = (status: string) => {
-
-			return new Promise<boolean>((resolve, reject): void => {
-
-				waitForElementToRender({ selector: `#delivery_option_${shippingMethodId}` }).then((shippingRadioButton: any) => {
-					if (shippingRadioButton) {
-						shippingRadioButton.checked = true;
-						const event = new Event('change', { 'bubbles': true, 'cancelable': true });
-						shippingRadioButton.dispatchEvent(event);
-					}
-					waitForElementToRender({ selector: `input[name="inpost_locker[${shippingMethodId}]"]` }).then(async (hiddenInput: any) => {
-						const parentContainer = hiddenInput.parentNode;
-						const selectedMachineID = parentContainer.querySelector('span.js-inpost-shipping-machine-name');
-						const isMachineSelected = selectedMachineID.innerText.replace(" ", '').toUpperCase() === deliveryPointID.replace(" ", '').toUpperCase();
-
-
-
-						if (isMachineSelected) {
-							resolve(true);
-							saveDataSessionStorage({ key: 'selectedShippingMethod', data: true })
-							return;
-						}
-
-						if (!isMachineSelected) {
-							hiddenInput.value = deliveryPointID;
-							const form = document?.getElementById("js-delivery") as HTMLFormElement;
-							form.addEventListener('submit', function (e) {
-								e.preventDefault();
-							});
-							await form.submit();
-							resolve(true);
-							return
-						}
-						reject(false)
-
-					});
-				});
-			});
-		};
-
-		const startSelectDeliveryPoint = () => {
-			try {
-			selectDeliveryPoint('first try').then((status) => {
-				flag = status;
-			});
-
-
-			const interval = setTimeout(() => {
-				if (!flag) {
-					selectDeliveryPoint('second try').then((status) => {
-						flag = status;
-
-					});
-				} else {
-					clearInterval(interval);
-				}
+const selectDeliveryPointWithRetry = async (shippingMethodId: string, deliveryPointID: string) => {
+	try {
+		const success = await trySelectDeliveryPoint(shippingMethodId, deliveryPointID);
+		if (!success) {
+			setTimeout(async () => {
+				await trySelectDeliveryPoint(shippingMethodId, deliveryPointID);
 			}, 2000);
-			} catch (e) {
-				console.log(e)
-			}
-		};
-
-		startSelectDeliveryPoint();
+		}
+	} catch (error) {
+		console.error(error);
 	}
+};
 
-}
+const trySelectDeliveryPoint = async (shippingMethodId: string, deliveryPointID: string): Promise<boolean> => {
+	return new Promise(async (resolve) => {
+		const shippingRadioButton = await waitForElementToRender({ selector: `#delivery_option_${shippingMethodId}` });
+		if (shippingRadioButton) {
+			(shippingRadioButton as HTMLInputElement).checked = true;
+			const event = new Event('change', { bubbles: true, cancelable: true });
+			(shippingRadioButton as HTMLInputElement).dispatchEvent(event);
+		}
+
+		const hiddenInput = await waitForElementToRender({ selector: `input[name="inpost_locker[${shippingMethodId}]"]` });
+		const isMachineSelected = await checkIfMachineSelected(hiddenInput as any, deliveryPointID);
+
+		if (isMachineSelected) {
+			resolve(true);
+			saveDataSessionStorage({ key: 'selectedShippingMethod', data: true });
+		} else {
+			await updateHiddenInput(hiddenInput as any, deliveryPointID);
+			resolve(true);
+		}
+	});
+};
+
+const checkIfMachineSelected = async (hiddenInput: HTMLElement, deliveryPointID: string) => {
+	const parentContainer = hiddenInput.parentNode;
+	const selectedMachineID = parentContainer?.querySelector('span.js-inpost-shipping-machine-name');
+	return (selectedMachineID as any)?.innerText?.replace(" ", '').toUpperCase() === deliveryPointID.replace(" ", '').toUpperCase();
+};
+
+const updateHiddenInput = (hiddenInput: HTMLInputElement, deliveryPointID: string) => {
+	hiddenInput.value = deliveryPointID;
+	const form = document.getElementById("js-delivery") as HTMLFormElement;
+	form.addEventListener('submit', e => e.preventDefault());
+	form.submit();
+};
 
 export const getInpostPointData = async ({ deliveryPointID }: Omit<IselectIPickupPointInpost, "provider">) => {
 	try {
