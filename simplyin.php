@@ -48,7 +48,7 @@ class Simplyin extends Module
 	{
 		Configuration::updateValue('SIMPLYIN_LIVE_MODE', false);
 
-		include dirname(__FILE__) . '/sql/install.php';
+		include_once dirname(__FILE__) . '/sql/install.php';
 
 		return parent::install()
 			&& $this->registerHook('header')
@@ -356,7 +356,7 @@ class Simplyin extends Module
 	{
 		Configuration::deleteByName('SIMPLYIN_LIVE_MODE');
 
-		include dirname(__FILE__) . '/sql/uninstall.php';
+		include_once dirname(__FILE__) . '/sql/uninstall.php';
 
 		return parent::uninstall();
 	}

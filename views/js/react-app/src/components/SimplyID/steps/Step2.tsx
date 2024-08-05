@@ -249,102 +249,115 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 
 
 	const handleSelectData = () => {
-
-		removeDataSessionStorage({ key: "isBillingSelected" })
-		removeDataSessionStorage({ key: "isDeliverySelected" })
-
-
-		removeDataSessionStorage({ key: "selectedShippingMethod" })
+		clearSessionStorage();
 
 		if (!userData?.billingAddresses[selectedBillingIndex]) {
-			return
+			return;
 		}
 
-		if (deliveryType === "address") {
+		setSessionStorageForDeliveryType();
 
-
-			// resetDeliveryMethod()
-			sessionStorage.setItem("BillingIndex", `${selectedBillingIndex}`)
-			sessionStorage.setItem("ShippingIndex", `${selectedShippingIndex}`)
-			sessionStorage.setItem("ParcelIndex", `null`)
-			sessionStorage.setItem("SelectedTab", `${selectedTab}`)
-
-			selectDeliveryMethod({ provider: "default" })
+		if (isDeliveryTypeAddress()) {
+			selectDeliveryMethod({ provider: "default" });
 		} else {
-			sessionStorage.setItem("BillingIndex", `${selectedBillingIndex}`)
-			sessionStorage.setItem("ShippingIndex", `null`)
-			sessionStorage.setItem("ParcelIndex", `${selectedDeliveryPointIndex}`)
-			sessionStorage.setItem("SelectedTab", `${selectedTab}`)
-
-			if (selectedDeliveryPointIndex !== undefined && userData?.parcelLockers[selectedDeliveryPointIndex]?.lockerId) {
-				removeDataSessionStorage({ key: 'isParcelAdded' })
-				selectDeliveryMethod({ deliveryPointID: filteredParcelLockers[selectedDeliveryPointIndex]?.lockerId });
-
-			}
-
-
+			handleParcelDelivery();
 		}
 
-		saveDataSessionStorage({ key: 'isParcelAdded', data: false })
-		saveDataSessionStorage({ key: 'sameDeliveryAddress', data: sameDeliveryAddress })
-		removeDataSessionStorage({ key: 'delivery-address' })
-		removeDataSessionStorage({ key: 'invoice-address' })
-		removeDataSessionStorage({ key: 'inpost-delivery-point' })
+		finalizeStorage();
 
+		const billingData = getBillingData();
+		const shippingData = getShippingData();
 
+		const normalizedNumberFromDB = normalizePhoneNumber(userData?.phoneNumber);
 
-		const billingData = userData?.billingAddresses[selectedBillingIndex || 0]
-		const shippingData = (selectedShippingIndex !== null && userData?.shippingAddresses?.length) ? userData?.shippingAddresses[selectedShippingIndex || 0] : null
+		const isSameBillingAndShippingAddresses = sameDeliveryAddress
+			|| isSameShippingAndBillingAddresses({ billingAddress: billingData, shippingAddress: shippingData });
 
-		let normalizedNumberFromDB = userData?.phoneNumber
-
-		if (billingData?.country?.toLowerCase() == "PL".toLowerCase()) {
-			if (userData?.phoneNumber?.startsWith("+48")) {
-				normalizedNumberFromDB = normalizedNumberFromDB.substring(3)
-			}
-		}
-
-
-
-		//if shipping and billing records are simillar then we don't need to generate by php shipping address
-		const isSameBillingAndShippingAddresses = sameDeliveryAddress || isSameShippingAndBillingAddresses({ billingAddress: billingData, shippingAddress: shippingData })
 		if (billingData) {
 			handlePhpScript(
 				{ ...billingData, phoneNumber: normalizedNumberFromDB || userData?.phoneNumber || "" },
 				'billingAddressesId',
 				isSameBillingAndShippingAddresses,
-				{
-					selectedShippingIndex,
-					userData,
-					selectedBillingIndex,
-					simplyInput: userData.email
-
-				})
+				{ selectedShippingIndex, userData, selectedBillingIndex, simplyInput: userData.email }
+			);
 		}
+
 		if (shippingData && !isSameBillingAndShippingAddresses) {
 			handlePhpScript(
 				{ ...shippingData, phoneNumber: normalizedNumberFromDB || userData?.phoneNumber || "" },
 				'shippingAddressesId',
 				false,
-				{
-					selectedShippingIndex,
-					userData,
-					selectedBillingIndex,
-					simplyInput: userData.email
-
-				})
+				{ selectedShippingIndex, userData, selectedBillingIndex, simplyInput: userData.email }
+			);
 		} else {
-			const billingAddressId = loadDataFromSessionStorage({ key: "billingAddressesId" })
-			saveDataSessionStorage({ key: "shippingAddressesId", data: billingAddressId })
+			syncShippingAddressId();
 		}
-		saveDataSessionStorage({ key: 'isSimplyDataSelected', data: true })
 
-		handleClosePopup()
+		finalizeProcess();
+	};
+
+	const clearSessionStorage = () => {
+		removeDataSessionStorage({ key: "isBillingSelected" });
+		removeDataSessionStorage({ key: "isDeliverySelected" });
+		removeDataSessionStorage({ key: "selectedShippingMethod" });
+	};
+
+	const setSessionStorageForDeliveryType = () => {
+		sessionStorage.setItem("BillingIndex", `${selectedBillingIndex}`);
+		sessionStorage.setItem("ShippingIndex", `${selectedShippingIndex}`);
+		sessionStorage.setItem("SelectedTab", `${selectedTab}`);
+		if (deliveryType === "address") {
+			sessionStorage.setItem("ParcelIndex", `null`);
+		} else {
+			sessionStorage.setItem("ParcelIndex", `${selectedDeliveryPointIndex}`);
+		}
+	};
+
+	const isDeliveryTypeAddress = () => deliveryType === "address";
+
+	const handleParcelDelivery = () => {
+		if (selectedDeliveryPointIndex !== undefined && userData?.parcelLockers[selectedDeliveryPointIndex]?.lockerId) {
+			removeDataSessionStorage({ key: 'isParcelAdded' });
+			selectDeliveryMethod({ deliveryPointID: userData.parcelLockers[selectedDeliveryPointIndex]?.lockerId });
+		}
+	};
+
+	const finalizeStorage = () => {
+		saveDataSessionStorage({ key: 'isParcelAdded', data: false });
+		saveDataSessionStorage({ key: 'sameDeliveryAddress', data: sameDeliveryAddress });
+		removeDataSessionStorage({ key: 'delivery-address' });
+		removeDataSessionStorage({ key: 'invoice-address' });
+		removeDataSessionStorage({ key: 'inpost-delivery-point' });
+	};
+
+	const getBillingData = () => userData?.billingAddresses[selectedBillingIndex || 0];
+
+	const getShippingData = () => {
+		return (selectedShippingIndex !== null && userData?.shippingAddresses?.length)
+			? userData?.shippingAddresses[selectedShippingIndex || 0]
+			: null;
+	};
+
+	const normalizePhoneNumber = (phoneNumber: any) => {
+		if (userData?.billingAddresses[selectedBillingIndex]?.country?.toLowerCase() === "pl" && phoneNumber?.startsWith("+48")) {
+			return phoneNumber.substring(3);
+		}
+		return phoneNumber;
+	};
+
+	const syncShippingAddressId = () => {
+		const billingAddressId = loadDataFromSessionStorage({ key: "billingAddressesId" });
+		saveDataSessionStorage({ key: "shippingAddressesId", data: billingAddressId });
+	};
+
+	const finalizeProcess = () => {
+		saveDataSessionStorage({ key: 'isSimplyDataSelected', data: true });
+		handleClosePopup();
 
 		if (isUserLoggedIn) {
 			location.reload();
 		}
-	}
+	};
 
 
 	const handleChangeShippingCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -849,12 +862,9 @@ export const Step2 = ({ handleClosePopup, userData, setUserData, editItemIndex, 
 					setSelectedShippingIndex={setSelectedShippingIndex}
 					setSelectedDeliveryPointIndex={setSelectedDeliveryPointIndex}
 					setSameDeliveryAddress={setSameDeliveryAddress}
-					selectedTab={selectedTab}
 					setSelectedTab={setSelectedTab}
 				/>
 			}
-
-			{/* <button onClick={handlePhpScript}> call php script</button> */}
 		</>
 	)
 }

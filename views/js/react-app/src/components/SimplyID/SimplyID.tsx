@@ -200,75 +200,66 @@ export const SimplyID = ({ listOfCountries, isUserLoggedIn }: ISimplyID) => {
 	const maxAttempts = 180 * 1000 / 500; // 30 seconds divided by 500ms
 
 	useEffect(() => {
+		const handleApiResponse = ({ ok, rejected, authToken, userData }: any) => {
+			if (authToken) {
+				setAuthToken(authToken);
+				sessionStorage.setItem("simplyinToken", authToken);
+			}
 
-		if (!notificationTokenId || modalStep !== 1) {
-			return
-		}
+			if (ok) {
+				handleSuccessfulResponse(userData);
+			} else if (ok === false && rejected === true) {
+				handleRejectedResponse();
+			} else if (counter < maxAttempts && notificationTokenId) {
+				handleRetry();
+			} else {
+				console.log('Login not accepted within 180 seconds');
+			}
+		};
+
+		const handleSuccessfulResponse = (userData: any) => {
+			if (userData?.language) {
+				i18n.changeLanguage(userData.language.toLowerCase());
+			}
+
+			const newData = { ...userData };
+			delete newData.createdAt;
+			delete newData.updatedAt;
+
+			setUserData(newData);
+			setVisible(true);
+			setModalStep(2);
+			saveDataSessionStorage({ key: 'UserData', data: newData });
+
+			predefinedFill(newData, handleClosePopup, {
+				setSelectedBillingIndex,
+				setSelectedShippingIndex,
+				setSelectedDeliveryPointIndex,
+				setSameDeliveryAddress,
+				setPickupPointDelivery,
+				isUserLoggedIn
+			});
+		};
+
+		const handleRejectedResponse = () => {
+			setVisible(true);
+			setModalStep("rejected");
+		};
+
+		const handleRetry = () => {
+			setTimeout(() => setCounter((prev) => prev + 1), 1000);
+		};
 
 		middlewareApi({
 			endpoint: "checkout/checkIfSubmitEmailPushNotificationWasConfirmed",
 			method: 'POST',
 			requestBody: { "email": simplyInput.trim().toLowerCase(), "notificationTokenId": notificationTokenId }
 		})
-			.then(({ ok, rejected, authToken, userData }) => {
-
-				if (authToken) {
-
-					setAuthToken(authToken)
-					sessionStorage.setItem("simplyinToken", authToken);
-				}
-				if (ok) {
-					if (userData?.language) {
-						i18n.changeLanguage(userData?.language.toLowerCase())
-					}
-
-
-
-					const newData = { ...userData }
-					if (newData?.createdAt) {
-						delete newData.createdAt
-					}
-					if (newData?.updatedAt) {
-						delete newData.updatedAt
-					}
-
-					setUserData(newData)
-
-
-					// setUserData(userData)
-					setVisible(true)
-					setModalStep(2)
-
-					saveDataSessionStorage({ key: 'UserData', data: newData })
-					// saveDataSessionStorage({ key: 'UserData', data: userData })
-
-					predefinedFill(newData, handleClosePopup, {
-						setSelectedBillingIndex,
-						setSelectedShippingIndex,
-						setSelectedDeliveryPointIndex,
-						setSameDeliveryAddress,
-						setPickupPointDelivery,
-						isUserLoggedIn,
-						// selectedBillingIndex,
-						// selectedShippingIndex,
-						// sameDeliveryAddress
-					})
-
-				} else if (ok === false && rejected === true) {
-					setVisible(true)
-					setModalStep("rejected")
-				} else if (counter < maxAttempts && notificationTokenId) {
-					setTimeout(() => setCounter((prev) => prev + 1), 1000);
-				} else {
-					console.log('Login not accepted within 180 seconds');
-				}
-
-			})
+			.then(handleApiResponse)
 			.catch(error => {
 				console.error('Error checking login status:', error);
 			});
-	}, [notificationTokenId, counter])
-	// }, [notificationTokenId, counter, visible])
+	}, [notificationTokenId, counter]);
 
 
 	useEffect(() => {

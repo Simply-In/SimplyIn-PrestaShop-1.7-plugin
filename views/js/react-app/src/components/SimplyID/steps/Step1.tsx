@@ -4,18 +4,15 @@ import { middlewareApi } from '../../../services/middlewareApi'
 import { PopupTextError } from '../../PhoneField/PhoneField.styled'
 import { removeDataSessionStorage, saveDataSessionStorage } from '../../../services/sessionStorageApi'
 import { CounterContext, SelectedDataContext, TypedLoginType } from '../SimplyID'
-import { OtpInput as OtpInputReactJS } from 'reactjs-otp-input'
 import { Divider, Link } from '@mui/material'
 import Countdown from 'react-countdown'
 import { useTranslation } from "react-i18next";
 import { AndroidIcon } from '../../../assets/AndroidIcon'
 import { IosIcon } from '../../../assets/IosIcon'
 import { predefinedFill } from './functions'
+import { OtpInput } from './components/OtpInput'
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
 
-// const isUserLoggedIn = customer?.logged === true && customer?.is_guest !== "1";
 
 export const getLangBrowser = () => {
 	if (navigator.languages !== undefined) return navigator.languages[0];
@@ -245,41 +242,12 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 				<PinInputContainer  >
 
 
-					<div>
-						<form id="OTPForm">
-							<OtpInputReactJS
-								value={pinCode}
-								onChange={setPinCode}
-								numInputs={4}
-								isDisabled={countdownError ? true : false}
-								inputStyle={{
-									width: "40px",
-									height: "56px",
-									border: modalError ? "1px solid red" : countdownError ? "1px solid #FFD3D3" : "1px solid #D9D9D9",
-									borderRadius: "8px",
-									fontSize: "30px",
-									textAlign: "center",
-									padding: 0,
-									outlineWidth: "0px",
-
-								}}
-								isInputNum={true}
-								shouldAutoFocus={true}
-								renderInput={
-									(props: any, id: any) =>
-										<input
-											{...props}
-											type="number"
-											pattern="\d*"
-											autoComplete='one-time-code'
-											id={`otp-input-${id + 1}`}
-											inputMode='numeric' />}
-								inputType='numeric'
-								inputMode='numeric'
-								pattern="\d*"
-							/>
-						</form>
-					</div>
+					<OtpInput
+						pinCode={pinCode}
+						setPinCode={setPinCode}
+						countdownError={countdownError}
+						modalError={modalError}
+					/>
 
 					</PinInputContainer>
 				{countdownError ?
@@ -412,14 +380,7 @@ export const Step1 = ({ handleClosePopup, phoneNumber, setModalStep, setUserData
 												{t('modal-step-1.sendViaEmail')}
 											</Link>
 										</PopupSendAgain>
-
-
 								}
-
-
-
-
-
 							</>
 						}
 

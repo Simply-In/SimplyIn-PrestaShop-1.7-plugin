@@ -15,7 +15,6 @@ import { EditFormMachine } from './EditFormMachine';
 import { EditFormFooter } from './EditFormFooter';
 import { EditFormAddress } from './EditFormAddress';
 import { useTranslation } from "react-i18next";
-import { TabType } from '../Step2';
 
 
 declare global {
@@ -35,7 +34,6 @@ interface IStep2Form {
 	setSelectedShippingIndex: any
 	setSelectedDeliveryPointIndex: any
 	setSameDeliveryAddress: any
-	selectedTab: TabType,
 	setSelectedTab: any
 }
 
@@ -239,9 +237,6 @@ export const Step2Form = ({
 
 					setUserData(newData)
 					saveDataSessionStorage({ key: 'UserData', data: newData })
-
-					// setUserData(res.data)
-					// saveDataSessionStorage({ key: 'UserData', data: res.data })
 
 					//created to select newly created item
 					if (isNewData) {
