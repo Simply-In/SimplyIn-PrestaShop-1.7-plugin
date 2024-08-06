@@ -2,7 +2,7 @@
 <module>
   <name>simplyin</name>
   <displayName><![CDATA[SimplyIN]]></displayName>
-  <version><![CDATA[1.0.19]]></version>
+  <version><![CDATA[1.0.20]]></version>
   <description><![CDATA[simplyin module - quick checkout process st]]></description>
   <author><![CDATA[SimplyIN]]></author>
   <tab><![CDATA[shipping_logistics]]></tab>
