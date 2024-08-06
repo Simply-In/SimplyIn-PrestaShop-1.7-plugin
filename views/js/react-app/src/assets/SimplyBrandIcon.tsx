@@ -49,7 +49,7 @@ const SimplyBrandIcon = () => {
 
 		<div style={{ display: "flex", flexDirection: "column", fontSize: "14px", width: "100%", justifyContent: "center", marginBottom: "6px" }}>
 			<div style={{ display: "flex", width: "auto", flexDirection: "column", alignItems: "center" }}>
-				<svg width="" height="32" viewBox="0 0 932 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<svg width="" height="32" viewBox="0 0 932 32" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%" }}>
 					<path d="M264.253 16L1.99993 16" stroke="url(#paint0_linear_8948_22555)" stroke-width="4" stroke-linecap="round" />
 					<g transform="translate(50%, 50%)" >
 
