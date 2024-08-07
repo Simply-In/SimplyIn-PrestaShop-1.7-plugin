@@ -102,78 +102,77 @@ export const ContextMenu = ({ userData, element, item, setEditItemIndex, propert
 		const requestData = { userData: { ...userData, [property]: updatedProperty } }
 
 
+		const processUserData = (data: any) => {
+			const newData = { ...data };
+			delete newData.createdAt;
+			delete newData.updatedAt;
+			setUserData(newData);
+			saveDataSessionStorage({ key: 'UserData', data: newData });
+		};
+
+		const determineCustomKey = (property: any) => {
+			switch (property) {
+				case "parcelLockers":
+					return "ParcelIndex";
+				case "billingAddresses":
+					return "BillingIndex";
+				case "shippingAddresses":
+					return "ShippingIndex";
+				default:
+					return null;
+			}
+		};
+
+		const filterItems = (items: any, selectedTab: any, currentlySelectedItem: any, selectedRadioItem: any, customKey: any) => {
+			let filteredItems;
+			if (selectedTab) {
+				filteredItems = items.filter((el: any) => selectedTab === el.service_type);
+			} else {
+				filteredItems = items.filter((el: any, id: any) => {
+					if (currentlySelectedItem && currentlySelectedItem._id === el._id) {
+						setSelectedPropertyIndex(id);
+						saveDataSessionStorage({ key: customKey, data: id });
+					}
+					return el._id === selectedRadioItem?._id;
+				});
+			}
+
+			if (selectedRadioItem && !filteredItems.length) {
+				setSelectedPropertyIndex(0);
+				saveDataSessionStorage({ key: customKey, data: 0 });
+			}
+		};
+
+		const handleApiResponse = (res: any) => {
+			if (res.error) {
+				throw new Error(res.error);
+			}
+
+			if (res.data) {
+				processUserData(res.data);
+
+				const customKey = determineCustomKey(property);
+				if (!customKey) {
+					setSelectedPropertyIndex(null);
+					return;
+				}
+
+				const items = res.data[property] || [];
+				if (items.length) {
+					filterItems(items, selectedTab, currentlySelectedItem, selectedRadioItem, customKey);
+				} else {
+					setSelectedPropertyIndex(null);
+				}
+			}
+		};
+
+		// Call the API and handle response
 		middlewareApi({
 			endpoint: "userData",
 			method: 'PATCH',
 			token: authToken,
 			requestBody: requestData
-		}).then(res => {
-			if (res.error) {
-				throw new Error(res.error)
-			} else if (res.data) {
-				const newData = { ...res.data }
-				if (newData?.createdAt) {
-					delete newData.createdAt
-				}
-				if (newData?.updatedAt) {
-					delete newData.updatedAt
-				}
-
-				setUserData(newData)
-				saveDataSessionStorage({ key: 'UserData', data: newData })
-				//selection of previously selected radio element
-				if (res.data[property].length) {
-
-					let customKey: any
-					if (property === "parcelLockers") {
-
-						customKey = "ParcelIndex"
-					} else if (property === "billingAddresses") {
-						customKey = "BillingIndex"
-					} else if (property === "shippingAddresses") {
-						customKey = "ShippingIndex"
-					}
-					if (!customKey) {
-						return
-					}
-
-
-
-					let filteredParcelLockers
-
-					if (selectedTab) {
-						filteredParcelLockers = res.data?.parcelLockers.filter((el: any) => selectedTab === el.service_type)
-
-
-						filteredParcelLockers.filter((el: any, id: number) => {
-							if (currentlySelectedItem && currentlySelectedItem?._id === el?._id) {
-								setSelectedPropertyIndex(id)
-								saveDataSessionStorage({ key: customKey as "ParcelIndex" | "BillingIndex" | "ShippingIndex", data: id })
-							}
-						})
-
-					} else {
-						filteredParcelLockers = res.data[property].filter((el: any, id: number) => {
-							if (currentlySelectedItem && el._id === (currentlySelectedItem as any)._id) {
-								setSelectedPropertyIndex(id)
-							}
-							return el._id === selectedRadioItem?._id
-						})
-					}
-
-
-					if (selectedRadioItem && !filteredParcelLockers.length) {
-
-						setSelectedPropertyIndex(0)
-						saveDataSessionStorage({ key: customKey as "ParcelIndex" | "BillingIndex" | "ShippingIndex", data: 0 })
-
-
-					}
-				} else {
-					setSelectedPropertyIndex(null)
-				}
-			}
-		})
+		}).then(handleApiResponse);
 
 		handleCloseDialog();
 		handleClose();

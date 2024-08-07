@@ -186,6 +186,7 @@ if (isOrderConfirmationExecuted === true) {
         shopVersion: prestashopVersion,
         shopUserEmail: userEmail2 || undefined,
       };
+      console.log("newAccountSendData", newAccountSendData);
 
       middlewareApiTwo({
         endpoint: "checkout/createOrderAndAccount",
@@ -218,6 +219,7 @@ if (isOrderConfirmationExecuted === true) {
         shopUserEmail: userEmail2 || undefined,
       };
 
+      console.log("existingAccountSendData", existingAccountSendData);
       middlewareApiTwo({
         endpoint: "checkout/createOrderWithoutAccount",
         method: "POST",

@@ -32,7 +32,6 @@ export const isSameShippingAndBillingAddresses = ({ billingAddress, shippingAddr
 
 
 export const predefinedFill = (userData: any, handleClosePopup: any, indexContext: any) => {
-
 	const {
 		setSelectedBillingIndex,
 		setSelectedShippingIndex,
@@ -40,141 +39,61 @@ export const predefinedFill = (userData: any, handleClosePopup: any, indexContex
 		setSameDeliveryAddress,
 		setPickupPointDelivery,
 		isUserLoggedIn
-	} = indexContext
+	} = indexContext;
 
-	if (!userData) {
-		return
-	}
-	const { billingAddresses, shippingAddresses, parcelLockers } = userData
+	if (!userData || !userData.billingAddresses) return;
 
-	if (billingAddresses === undefined) {
+	const { billingAddresses, shippingAddresses, parcelLockers } = userData;
 
-		return
-	}
+	const billingAddressCount = billingAddresses.length;
+	const shippingAddressCount = shippingAddresses.length;
+	const parcelLockerCount = parcelLockers.length;
 
-	if (billingAddresses?.length === 0) {
+	const resetIndicesAndDefaults = () => {
+		setSelectedBillingIndex(0);
+		setSelectedShippingIndex(null);
+		setSelectedDeliveryPointIndex(null);
+		setSameDeliveryAddress(true);
+		sessionStorage.setItem("BillingIndex", `0`);
+		sessionStorage.setItem("ShippingIndex", `null`);
+		sessionStorage.setItem("ParcelIndex", `null`);
+	};
 
-		return
-	}
-
-	if (billingAddresses?.length === 1 && shippingAddresses?.length === 1 && parcelLockers?.length === 0) {
-
-
-
-		if (isSameShippingAndBillingAddresses({ billingAddress: billingAddresses[0], shippingAddress: shippingAddresses[0] })) {
-
-			setSelectedShippingIndex(null)
-			setSelectedDeliveryPointIndex(null)
-			setSameDeliveryAddress(true)
-			sessionStorage.setItem("ShippingIndex", `null`)
-
-			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn })
-
-		} else {
-
-			setSelectedShippingIndex(0)
-			setSelectedDeliveryPointIndex(null)
-			setSameDeliveryAddress(false)
-			sessionStorage.setItem("ShippingIndex", `0`)
-			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: 0, sameDeliveryAddress: false, handleClosePopup, isUserLoggedIn })
+	const handleSingleBillingAddress = () => {
+		if (shippingAddressCount === 0 && parcelLockerCount === 0) {
+			resetIndicesAndDefaults();
+			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn });
+			handleClosePopup();
+			selectDeliveryMethod({ provider: "default" });
+		} else if (shippingAddressCount === 1 && parcelLockerCount === 0) {
+			setSelectedShippingIndex(0);
+			sessionStorage.setItem("ShippingIndex", `0`);
+			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: 0, sameDeliveryAddress: !isSameShippingAndBillingAddresses({ billingAddress: billingAddresses[0], shippingAddress: shippingAddresses[0] }), handleClosePopup, isUserLoggedIn });
+		} else if (shippingAddressCount > 1 && parcelLockerCount === 0) {
+			setSelectedShippingIndex(0);
+			sessionStorage.setItem("ShippingIndex", `0`);
+			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: 0, sameDeliveryAddress: false, handleClosePopup, isUserLoggedIn });
+		} else if (parcelLockerCount === 1) {
+			setSelectedDeliveryPointIndex(0);
+			sessionStorage.setItem("ParcelIndex", `0`);
+			selectDeliveryMethod({ deliveryPointID: parcelLockers[0].lockerId });
+			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn });
+			handleClosePopup();
+		} else if (parcelLockerCount > 1) {
+			setSelectedDeliveryPointIndex(0);
+			setPickupPointDelivery(true);
+			sessionStorage.setItem("ParcelIndex", `0`);
+			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn });
 		}
+	};
 
-		setSelectedBillingIndex(0)
-		sessionStorage.setItem("BillingIndex", `0`)
-		sessionStorage.setItem("ParcelIndex", `null`)
-		handleClosePopup()
-		selectDeliveryMethod({ provider: "default" })
-		return
+	if (billingAddressCount === 1) {
+		handleSingleBillingAddress();
+	} else {
+		resetIndicesAndDefaults();
+		selectDeliveryMethod({ provider: "default" });
 	}
-
-	if (billingAddresses?.length === 1 && shippingAddresses?.length > 1 && parcelLockers?.length === 0) {
-
-		setSelectedBillingIndex(0)
-		setSelectedShippingIndex(0)
-		sessionStorage.setItem("BillingIndex", `0`)
-		sessionStorage.setItem("ShippingIndex", `0`)
-		sessionStorage.setItem("ParcelIndex", `null`)
-		setSameDeliveryAddress(false)
-		setSelectedDeliveryPointIndex(null)
-		selectDeliveryMethod({ provider: "default" })
-
-		if (isSameShippingAndBillingAddresses({ billingAddress: billingAddresses[0], shippingAddress: shippingAddresses[0] })) {
-			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn })
-		} else {
-			createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: 0, sameDeliveryAddress: false, handleClosePopup, isUserLoggedIn })
-		}
-
-		return
-	}
-
-	if (billingAddresses?.length === 1 && shippingAddresses?.length === 0 && parcelLockers?.length === 0) {
-
-		setSelectedBillingIndex(0)
-		setSelectedShippingIndex(null)
-		setSameDeliveryAddress(true)
-		setSelectedDeliveryPointIndex(null)
-		sessionStorage.setItem("BillingIndex", `0`)
-		sessionStorage.setItem("ShippingIndex", `null`)
-		sessionStorage.setItem("ParcelIndex", `null`)
-		selectDeliveryMethod({ provider: "default" })
-
-		createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn })
-
-		handleClosePopup()
-		return
-	}
-
-
-	if (billingAddresses?.length === 1 && shippingAddresses?.length === 0 && parcelLockers?.length === 1) {
-
-		setSelectedBillingIndex(0)
-		setSelectedShippingIndex(null)
-		setSelectedDeliveryPointIndex(0)
-		setSameDeliveryAddress(true)
-
-		sessionStorage.setItem("BillingIndex", `0`)
-		sessionStorage.setItem("ShippingIndex", `null`)
-		sessionStorage.setItem("ParcelIndex", `0`)
-
-
-		selectDeliveryMethod({ deliveryPointID: parcelLockers[0].lockerId });
-
-		createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn })
-
-		handleClosePopup()
-		return
-	}
-
-
-	if (billingAddresses?.length === 1 && shippingAddresses?.length === 0 && parcelLockers?.length > 1) {
-
-		setSelectedBillingIndex(0)
-		setSelectedShippingIndex(null)
-
-		setSelectedDeliveryPointIndex(0)
-		setSameDeliveryAddress(true)
-		setPickupPointDelivery(true)
-
-		sessionStorage.setItem("BillingIndex", `0`)
-		sessionStorage.setItem("ShippingIndex", `null`)
-		sessionStorage.setItem("ParcelIndex", `0`)
-
-		createAddressesController({ userData, selectedBillingIndex: 0, selectedShippingIndex: null, sameDeliveryAddress: true, handleClosePopup, isUserLoggedIn })
-		return
-	}
-
-
-	setSelectedBillingIndex(0)
-	setSelectedShippingIndex(null)
-	setSameDeliveryAddress(true)
-	setSelectedDeliveryPointIndex(null)
-	sessionStorage.setItem("BillingIndex", `0`)
-	sessionStorage.setItem("ShippingIndex", `null`)
-	sessionStorage.setItem("ParcelIndex", `null`)
-	selectDeliveryMethod({ provider: "default" })
-
-
-}
+};
 
 type CreateAddressesControllerArgumentsType = {
 	userData: any,

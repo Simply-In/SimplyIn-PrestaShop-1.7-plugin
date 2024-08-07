@@ -22,8 +22,8 @@
  * @license   https://joinup.ec.europa.eu/software/page/eupl
  */
 
-require dirname(__FILE__) . '/../../../config/config.inc.php';
-require dirname(__FILE__) . '/../../../init.php';
+require_once dirname(__FILE__) . '/../../../config/config.inc.php';
+require_once dirname(__FILE__) . '/../../../init.php';
 
 if (!defined('_PS_VERSION_')) {
     exit;

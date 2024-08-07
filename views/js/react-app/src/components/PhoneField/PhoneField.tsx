@@ -12,6 +12,7 @@ import PhoneInput, { Country, isValidPhoneNumber, parsePhoneNumber } from 'react
 import 'react-phone-number-input/style.css'
 import { SimplyInFullLogo } from "../../assets/SimplyInFullLogo";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 
 
 
@@ -19,6 +20,7 @@ import { useTranslation } from "react-i18next";
 const phoneLabel = document.querySelector("[for=billing_phone]")
 phoneLabel?.remove()
 
+const ClickedDiv = styled.div``
 
 const MyCustomInput = React.forwardRef((props, ref: any) => (
 	<div style={{ display: 'flex', flex: "1 1 auto" }}>
@@ -202,7 +204,7 @@ export const PhoneField = () => {
 					</CheckboxLabel>
 				</CheckboxContainer>
 
-				<div onClick={BubblingHandling}>
+				<ClickedDiv onClick={BubblingHandling}>
 					{checked && <>
 						<SimplyInFullLogo style={{ marginBottom: "8px" }} />
 
@@ -221,7 +223,7 @@ export const PhoneField = () => {
 						{error && <div style={{ color: '#ff8000' }}>{error}</div>}
 						<Divider style={{ marginTop: "16px", marginBottom: "16px" }} />
 					</>}
-				</div>
+				</ClickedDiv>
 				{checked && <>
 					<PhoneInputDescription>
 						{t('payment.createAccountDescription-1')}
